@@ -2328,7 +2328,7 @@ let cachedUserSetores = [];
 let cachedCertidoes = [];
 let cachedLicitacoes = [];
 
-const requestDB = indexedDB.open("ControleContratos", 7);
+const requestDB = indexedDB.open("ControleContratos", 8);
 requestDB.onupgradeneeded = (e) => {
   db = e.target.result;
   console.log('IndexedDB: upgrade needed, version', e.oldVersion, '->', e.newVersion);
