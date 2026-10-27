@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS companies (
   id TEXT PRIMARY KEY,
   nome TEXT NOT NULL,
   cnpj TEXT DEFAULT '',
+  uf TEXT DEFAULT '',
   active INTEGER NOT NULL DEFAULT 1,
   criado_em TEXT NOT NULL DEFAULT (now()::text)
 );

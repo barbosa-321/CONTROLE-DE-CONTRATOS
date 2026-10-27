@@ -4,6 +4,29 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// Carrega o .env se as variaveis criticas nao estiverem definidas
+if (!process.env.JWT_SECRET || !process.env.SUPABASE_URL) {
+  try {
+    const envPath = path.join(__dirname, '.env')
+    if (fs.existsSync(envPath)) {
+      for (const line of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
+        const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/)
+        if (m && !(m[1] in process.env)) {
+          let v = m[2]
+          if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) v = v.slice(1, -1)
+          process.env[m[1]] = v
+        }
+      }
+      console.log('[LOCAL-SERVER] .env carregado de', envPath)
+    } else {
+      console.warn('[LOCAL-SERVER] AVISO: arquivo .env nao encontrado em', envPath)
+    }
+  } catch (e) {
+    console.warn('[LOCAL-SERVER] AVISO: falha ao carregar .env:', e.message)
+  }
+}
+
 const PORT = process.env.PORT || 3000
 
 const { default: apiHandler } = await import('./api/index.js')

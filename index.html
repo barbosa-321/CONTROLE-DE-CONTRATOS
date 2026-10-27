@@ -499,8 +499,6 @@
     [data-theme="dark"] #tb-contratos td { color: #e0e0e0; font-weight: 500; }
     [data-theme="dark"] #tb-vencimentos td { color: #e0e0e0; }
     [data-theme="dark"] #tb-pagamentos td { color: #e0e0e0; }
-    [data-theme="dark"] #tb-certidoes td { color: #e0e0e0; }
-    [data-theme="dark"] #tb-licitacoes td { color: #e0e0e0; }
     [data-theme="dark"] #tb-usuarios td { color: #e0e0e0; }
     [data-theme="dark"] tr:hover td { background: #2a2a2a; }
     [data-theme="dark"] .summary-card { background: #1e1e1e; }
@@ -873,8 +871,6 @@
   <button onclick="showPage('contratos',this)">Contratos</button>
   <button onclick="showPage('novo-contrato',this)">+ Novo Contrato</button>
   <button onclick="showPage('pagamentos',this)">Pagamentos</button>
-  <button onclick="showPage('certidoes',this)">Certidões</button>
-  <button onclick="showPage('licitacoes',this)">Contrato Licitações</button>
   <div class="nav-dropdown">
     <button class="dropdown-btn" onclick="toggleConfigDropdown(event)">Configuração ▾</button>
     <div class="dropdown-content" id="config-dropdown">
@@ -892,6 +888,9 @@
 
   <!-- DASHBOARD -->
   <div id="page-dashboard" class="page active">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+      <button class="btn btn-primary" onclick="atualizarDados(this)" style="font-size:0.85rem;">Atualizar</button>
+    </div>
     <div class="summary-cards" id="summary-cards"></div>
     <div class="card">
       <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:end">
@@ -925,7 +924,10 @@
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
         <h2>Contratos Cadastrados</h2>
-        <button class="btn btn-primary" onclick="exportarContratosExcel()" style="font-size:0.85rem;">Exportar Excel</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" onclick="atualizarDados(this)" style="font-size:0.85rem;">Atualizar</button>
+          <button class="btn btn-primary" onclick="exportarContratosExcel()" style="font-size:0.85rem;">Exportar Excel</button>
+        </div>
       </div>
       <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; align-items:flex-end;">
         <div class="form-group" style="min-width:220px;">
@@ -990,8 +992,14 @@
           </select>
         </div>
         <div class="form-group">
+          <label>CNPJ da Empresa *</label>
+          <input type="text" id="f-cnpj-empresa" placeholder="00.000.000/0001-00"
+            oninput="onDocInput(this); buscarEmpresaPorCnpj()" onblur="onDocBlur(this)" maxlength="18"/>
+          <small id="f-empresa-info" style="margin-top:2px;font-size:0.78rem;color:#888;"></small>
+        </div>
+        <div class="form-group">
           <label>Empresa *</label>
-          <select id="f-empresa">
+          <select id="f-empresa" onchange="onEmpresaSelectChange()">
             <option value="">Selecione...</option>
           </select>
         </div>
@@ -1124,7 +1132,10 @@
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
         <h2>Pagamentos / Parcelas</h2>
-        <button class="btn btn-primary" onclick="exportarPagamentosExcel()" style="font-size:0.85rem;">Exportar Excel</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" onclick="atualizarDados(this)" style="font-size:0.85rem;">Atualizar</button>
+          <button class="btn btn-primary" onclick="exportarPagamentosExcel()" style="font-size:0.85rem;">Exportar Excel</button>
+        </div>
       </div>
       <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; align-items:flex-end;">
         <div class="form-group" style="min-width:220px;">
@@ -1179,312 +1190,6 @@
         </table>
       </div>
       <div id="pg-pagination"></div>
-    </div>
-  </div>
-
-  <!-- CERTIDOES -->
-  <div id="page-certidoes" class="page">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-        <h2>Controle de Certidões</h2>
-        <button class="btn btn-primary" onclick="abrirModalCertidao()">+ Nova Certidão</button>
-      </div>
-      <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; align-items:flex-end;">
-        <div class="form-group" style="min-width:220px;">
-          <label>Filtrar por Empresa</label>
-          <select id="filtro-ct-empresa" onchange="renderCertidoes()">
-            <option value="">Todas</option>
-          </select>
-        </div>
-        <div class="form-group" style="min-width:120px;">
-          <label>Filtrar por UF</label>
-          <select id="filtro-ct-uf" onchange="renderCertidoes()">
-            <option value="">Todas</option>
-          </select>
-        </div>
-        <div class="form-group" style="min-width:160px;">
-          <label>Filtrar por Tipo</label>
-          <select id="filtro-ct-tipo" onchange="renderCertidoes()">
-            <option value="">Todos</option>
-          </select>
-        </div>
-        <div class="form-group" style="min-width:160px;">
-          <label>Filtrar por Status</label>
-          <select id="filtro-ct-status" onchange="renderCertidoes()">
-            <option value="">Todos</option>
-            <option value="valida">Válida</option>
-            <option value="vencida">Vencida</option>
-            <option value="pendente">Pendente</option>
-          </select>
-        </div>
-      </div>
-      <div style="overflow-x:auto">
-        <table>
-          <thead>
-            <tr>
-              <th>Empresa</th><th>CNPJ</th><th>UF</th><th>Cidade</th><th>Tipo</th><th>Emissão</th><th>Validade</th>
-              <th>Status</th><th>Anexo</th><th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tb-certidoes"></tbody>
-        </table>
-      </div>
-      <div id="cert-pagination"></div>
-    </div>
-  </div>
-
-  <!-- LICITACOES -->
-  <div id="page-licitacoes" class="page">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-        <h2>Contrato Licitações</h2>
-        <button class="btn btn-primary" onclick="abrirModalLicitacao()">+ Nova Licitação</button>
-      </div>
-      <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; align-items:flex-end;">
-        <div class="form-group" style="min-width:220px;">
-          <label>Filtrar por Empresa</label>
-          <select id="filtro-lc-empresa" onchange="renderLicitacoes()">
-            <option value="">Todas</option>
-          </select>
-        </div>
-        <div class="form-group" style="min-width:160px;">
-          <label>Filtrar por Status</label>
-          <select id="filtro-lc-status" onchange="renderLicitacoes()">
-            <option value="">Todos</option>
-            <option value="em_andamento">Em andamento</option>
-            <option value="inativo">Inativo</option>
-          </select>
-        </div>
-        <div class="form-group" style="min-width:160px;">
-          <label>Nº Licitação</label>
-          <input type="text" id="filtro-lc-numero" placeholder="Buscar..." oninput="renderLicitacoes()"/>
-        </div>
-      </div>
-      <div style="overflow-x:auto">
-        <table>
-          <thead>
-            <tr>
-              <th>Nº Licitação</th><th>Nome</th><th>CNPJ</th><th>Empresa</th><th>Objeto</th>
-              <th>Valor do Contrato</th><th>Vigência</th><th>Status</th><th>Anexo</th><th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tb-licitacoes"></tbody>
-        </table>
-      </div>
-      <div id="lc-pagination"></div>
-    </div>
-  </div>
-
-  <!-- MODAL CERTIDAO -->
-  <div class="modal-overlay" id="modal-certidao">
-    <div class="modal">
-      <button class="modal-close" onclick="fecharModal('modal-certidao')">&times;</button>
-      <h3 id="modal-certidao-title">Nova Certidão</h3>
-      <input type="hidden" id="mc-id"/>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Empresa *</label>
-          <select id="mc-empresa"><option value="">Selecione...</option></select>
-        </div>
-        <div class="form-group">
-          <label>CNPJ *</label>
-          <input type="text" id="mc-cnpj" placeholder="00.000.000/0001-00" oninput="onDocInput(this)" onblur="onDocBlur(this)" maxlength="18" required/>
-        </div>
-        <div class="form-group">
-          <label>Tipo da Certidão *</label>
-          <select id="mc-tipo" onchange="onTipoCertidaoChange()"><option value="">Selecione...</option></select>
-        </div>
-        <div class="form-group" style="position:relative;">
-          <label>UF</label>
-          <input type="text" id="mc-uf" placeholder="Selecione..." oninput="onUfInput()" onfocus="onUfFocus()" onkeydown="onUfKeydown(event)" autocomplete="off"/>
-          <input type="hidden" id="mc-uf-val"/>
-          <div id="mc-uf-dropdown" class="cidade-dropdown"></div>
-        </div>
-        <div class="form-group" style="position:relative;" id="mc-cidade-group">
-          <label>Cidade</label>
-          <input type="text" id="mc-cidade" placeholder="Selecione a UF primeiro..." oninput="onCidadeInput()" onfocus="onCidadeFocus()" onkeydown="onCidadeKeydown(event)" autocomplete="off"/>
-          <input type="hidden" id="mc-cidade-val"/>
-          <div id="mc-cidade-dropdown" class="cidade-dropdown"></div>
-        </div>
-        <div class="form-group">
-          <label>Data de Emissão</label>
-          <input type="date" id="mc-emissao"/>
-        </div>
-        <div class="form-group">
-          <label>Data de Validade</label>
-          <input type="date" id="mc-validade"/>
-        </div>
-        <div class="form-group">
-          <label>Status</label>
-          <select id="mc-status">
-            <option value="pendente">Pendente</option>
-            <option value="valida">Válida</option>
-            <option value="vencida">Vencida</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Documento (PDF/Imagem)</label>
-          <input type="file" id="mc-arquivo" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" style="background:#fff;padding:6px;cursor:pointer;"/>
-        </div>
-        <div class="form-group full">
-          <label>Observações</label>
-          <textarea id="mc-obs" placeholder="Informações adicionais..." oninput="toUpper(this)"></textarea>
-        </div>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-primary" onclick="salvarCertidao()">Salvar</button>
-        <button class="btn" style="background:#e8eef4;color:#333;" onclick="fecharModal('modal-certidao')">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL LICITACAO -->
-  <div class="modal-overlay" id="modal-licitacao">
-    <div class="modal" style="max-width:750px;">
-      <button class="modal-close" onclick="fecharModal('modal-licitacao')">&times;</button>
-      <h3 id="modal-licitacao-title">Nova Licitação</h3>
-      <input type="hidden" id="ml-id"/>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Nº Licitação *</label>
-          <input type="text" id="ml-numero" placeholder="Ex: 001/2026" oninput="toUpper(this)"/>
-        </div>
-        <div class="form-group">
-          <label>Nome da Licitação</label>
-          <input type="text" id="ml-nome" placeholder="Nome/descrição da licitação" oninput="toUpper(this)"/>
-        </div>
-        <div class="form-group">
-          <label>CNPJ *</label>
-          <input type="text" id="ml-cnpj" placeholder="00.000.000/0000-00" oninput="onDocInput(this)" onblur="onDocBlur(this)" maxlength="18" required/>
-        </div>
-        <div class="form-group">
-          <label>Edital</label>
-          <input type="text" id="ml-edital" placeholder="Nº do edital" oninput="toUpper(this)"/>
-        </div>
-        <div class="form-group full">
-          <label>Objeto *</label>
-          <input type="text" id="ml-objeto" placeholder="Descrição do objeto" oninput="toUpper(this)"/>
-        </div>
-        <div class="form-group">
-          <label>Empresa Vencedora</label>
-          <select id="ml-empresa"><option value="">Selecione...</option></select>
-        </div>
-
-        <div class="form-group">
-          <label>Valor (R$)</label>
-          <input type="number" id="ml-valor" placeholder="0,00" step="0.01"/>
-        </div>
-        <div class="form-group">
-          <label>Data Homologação</label>
-          <input type="date" id="ml-homologacao"/>
-        </div>
-        <div class="form-group">
-          <label>Início Vigência</label>
-          <input type="date" id="ml-inicio"/>
-        </div>
-        <div class="form-group">
-          <label>Fim Vigência</label>
-          <input type="date" id="ml-fim"/>
-        </div>
-        <div class="form-group">
-          <label>Status</label>
-          <select id="ml-status">
-            <option value="em_andamento">Em andamento</option>
-            <option value="inativo">Inativo</option>
-          </select>
-        </div>
-        <div class="form-group full">
-          <label>Observações</label>
-          <textarea id="ml-obs" placeholder="Informações adicionais..." oninput="toUpper(this)"></textarea>
-        </div>
-      </div>
-
-      <div style="margin-top:16px;border-top:1px solid #eee;padding-top:16px;">
-        <h4 style="margin-bottom:8px;">Arquivos Anexos</h4>
-        <div id="ml-arquivos-lista" style="margin-bottom:8px;"></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
-          <div class="form-group" style="margin:0;flex:1;min-width:200px;">
-            <label style="font-size:0.8rem;">Novo Arquivo</label>
-            <input type="file" id="ml-novo-arquivo" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" style="background:#fff;padding:6px;cursor:pointer;"/>
-          </div>
-          <div class="form-group" style="margin:0;min-width:120px;">
-            <label style="font-size:0.8rem;">Tipo</label>
-            <select id="ml-arquivo-tipo">
-              <option value="edital">Edital</option>
-              <option value="contrato">Contrato</option>
-              <option value="aditivo">Aditivo</option>
-              <option value="outro">Outro</option>
-            </select>
-          </div>
-          <button class="btn btn-sm btn-primary" onclick="adicionarArquivoLicitacao()" style="margin-bottom:0;">Adicionar</button>
-        </div>
-      </div>
-
-      <div style="margin-top:16px;border-top:1px solid #eee;padding-top:16px;">
-        <div id="ml-resumo-box" class="resumo-box"></div>
-      </div>
-
-      <div style="margin-top:16px;border-top:1px solid #eee;padding-top:16px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <h4>Renovações / Aditivos</h4>
-          <button class="btn btn-sm btn-primary" onclick="abrirModalAditivoLicitacao()">+ Novo Aditivo</button>
-        </div>
-        <div id="ml-aditivos-lista"><p style="color:#aaa;font-size:0.85rem;">Nenhum aditivo registrado.</p></div>
-      </div>
-
-      <div class="btn-row" style="margin-top:16px;">
-        <button class="btn btn-primary" onclick="salvarLicitacao()">Salvar</button>
-        <button class="btn" style="background:#e8eef4;color:#333;" onclick="fecharModal('modal-licitacao')">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL ADITIVO LICITACAO -->
-  <div class="modal-overlay" id="modal-aditivo-licitacao">
-    <div class="modal" style="max-width:550px;">
-      <button class="modal-close" onclick="fecharModal('modal-aditivo-licitacao')">&times;</button>
-      <h3>Novo Aditivo / Renovação</h3>
-      <input type="hidden" id="mal-id"/>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Tipo *</label>
-          <select id="mal-tipo">
-            <option value="renovacao">Renovação</option>
-            <option value="aditivo_valor">Aditivo de Valor</option>
-            <option value="aditivo_prazo">Aditivo de Prazo</option>
-            <option value="aditivo_valor_prazo">Aditivo de Valor e Prazo</option>
-            <option value="outro">Outro</option>
-          </select>
-        </div>
-        <div class="form-group full">
-          <label>Descrição</label>
-          <textarea id="mal-descricao" placeholder="Descrição do aditivo/renovação..." oninput="toUpper(this)"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Valor Anterior (R$)</label>
-          <input type="number" id="mal-valor-ant" placeholder="0,00" step="0.01"/>
-        </div>
-        <div class="form-group">
-          <label>Valor Novo (R$)</label>
-          <input type="number" id="mal-valor-novo" placeholder="0,00" step="0.01"/>
-        </div>
-        <div class="form-group">
-          <label>Nova Data Início</label>
-          <input type="date" id="mal-inicio"/>
-        </div>
-        <div class="form-group">
-          <label>Nova Data Fim</label>
-          <input type="date" id="mal-fim"/>
-        </div>
-        <div class="form-group full">
-          <label>Arquivo do Aditivo</label>
-          <input type="file" id="mal-arquivo" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" style="background:#fff;padding:6px;cursor:pointer;"/>
-        </div>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-primary" onclick="salvarAditivoLicitacao()">Salvar Aditivo</button>
-        <button class="btn" style="background:#e8eef4;color:#333;" onclick="fecharModal('modal-aditivo-licitacao')">Cancelar</button>
-      </div>
     </div>
   </div>
 
@@ -1563,7 +1268,7 @@
         <h2>Empresas</h2>
         <p style="margin-bottom:16px;color:#666;font-size:0.9rem;">Cadastre as empresas que serão vinculadas aos contratos e aos usuários.</p>
         <div style="display:flex;gap:8px;margin-bottom:16px;align-items:end;flex-wrap:wrap;">
-          <div class="form-group" style="flex:1;min-width:180px;">
+          <div class="form-group" style="flex:2;min-width:180px;">
             <label>Nome da Empresa</label>
             <input type="text" id="nova-empresa-nome" placeholder="Ex: Empresa ABC Ltda" oninput="toUpper(this)"/>
           </div>
@@ -1571,12 +1276,16 @@
             <label>CNPJ *</label>
             <input type="text" id="nova-empresa-cnpj" placeholder="00.000.000/0001-00" oninput="onDocInput(this)" onblur="onDocBlur(this)" maxlength="18"/>
           </div>
+          <div class="form-group" style="flex:0 0 80px;min-width:70px;">
+            <label>UF *</label>
+            <select id="nova-empresa-uf"></select>
+          </div>
           <button class="btn btn-primary" id="btn-salvar-empresa" onclick="salvarEmpresa()" style="margin-bottom:1px;">Adicionar</button>
         </div>
         <div style="overflow-x:auto">
           <table>
             <thead>
-              <tr><th>#</th><th>Empresa</th><th>CNPJ</th><th>Ações</th></tr>
+              <tr><th>#</th><th>Empresa</th><th>CNPJ</th><th>UF</th><th>Ações</th></tr>
             </thead>
             <tbody id="tb-empresas"></tbody>
           </table>
@@ -1634,7 +1343,7 @@
     <div id="config-sub-destinatarios" class="config-section">
       <div class="card">
         <h2>Destinatários de E-mail</h2>
-        <p style="margin-bottom:16px;color:#666;font-size:0.9rem;">Cadastre e-mails que receberão os alertas. Marque quais tipos de alerta cada destinatário deseja receber (Contratos, Pagamentos, Certidões, Contrato Licitações). Você também pode restringir por empresas e setores.</p>
+        <p style="margin-bottom:16px;color:#666;font-size:0.9rem;">Cadastre e-mails que receberão os alertas. Marque quais tipos de alerta cada destinatário deseja receber (Contratos, Pagamentos). Você também pode restringir por empresas e setores.</p>
         <div id="destinatario-form" style="display:flex;gap:8px;margin-bottom:16px;align-items:end;flex-wrap:wrap;">
           <div class="form-group" style="flex:1;min-width:200px;">
             <label>E-mail *</label>
@@ -1649,7 +1358,7 @@
             <div id="dest-empresas-checkboxes" style="display:flex;flex-wrap:wrap;gap:6px;padding:4px 0;"></div>
           </div>
           <div class="form-group" style="flex:1;min-width:200px;">
-            <label>Setores (para alertas de Certidões/Contrato Licitações)</label>
+            <label>Setores</label>
             <div id="dest-setores-checkboxes" style="display:flex;flex-wrap:wrap;gap:6px;padding:4px 0;"></div>
           </div>
           <div class="form-group" style="flex:1;min-width:260px;">
@@ -1657,8 +1366,6 @@
             <div id="dest-alertas-checkboxes" style="display:flex;flex-wrap:wrap;gap:8px;padding:6px 0;">
               <label style="font-size:0.82rem;"><input type="checkbox" value="contratos" checked/> Contratos</label>
               <label style="font-size:0.82rem;"><input type="checkbox" value="pagamentos" checked/> Pagamentos</label>
-              <label style="font-size:0.82rem;"><input type="checkbox" value="certidoes" checked/> Certidões</label>
-              <label style="font-size:0.82rem;"><input type="checkbox" value="licitacoes" checked/> Contrato Licitações</label>
             </div>
           </div>
           <button class="btn btn-primary" id="btn-salvar-dest" onclick="salvarDestinatario()" style="margin-bottom:1px;">Adicionar</button>
@@ -1683,7 +1390,7 @@
         <div class="form-grid">
           <div class="form-group">
             <label>Servidor SMTP</label>
-            <input type="text" id="cfg-smtp" placeholder="smtp.gmail.com" oninput="toUpper(this)"/>
+            <input type="text" id="cfg-smtp" placeholder="smtp.gmail.com"/>
           </div>
           <div class="form-group">
             <label>Porta SMTP</label>
@@ -1741,64 +1448,6 @@
             </div>
 
             <div style="border:1px solid #e0e0e0;border-radius:8px;padding:16px;">
-              <h4 style="margin:0 0 12px;color:#d4820a;">Certidões / CNDs</h4>
-              <div class="form-group" style="margin-bottom:8px;">
-                <label style="font-size:0.8rem;">Faixa 1 (mais longe)</label>
-                <div style="display:flex;gap:6px;align-items:center;">
-                  <input type="number" id="pz-ce-f1a" min="0" max="365" style="width:70px;" placeholder="31"/> a
-                  <input type="number" id="pz-ce-f1b" min="0" max="365" style="width:70px;" placeholder="35"/> dias
-                </div>
-              </div>
-              <div class="form-group" style="margin-bottom:8px;">
-                <label style="font-size:0.8rem;">Faixa 2</label>
-                <div style="display:flex;gap:6px;align-items:center;">
-                  <input type="number" id="pz-ce-f2a" min="0" max="365" style="width:70px;" placeholder="16"/> a
-                  <input type="number" id="pz-ce-f2b" min="0" max="365" style="width:70px;" placeholder="30"/> dias
-                </div>
-              </div>
-              <div class="form-group" style="margin-bottom:8px;">
-                <label style="font-size:0.8rem;">Faixa 3 (exato)</label>
-                <input type="number" id="pz-ce-f3" min="0" max="365" style="width:70px;" placeholder="15"/> dias
-              </div>
-              <div class="form-group">
-                <label style="font-size:0.8rem;">Faixa 4 (mais curto — atenção diária)</label>
-                <div style="display:flex;gap:6px;align-items:center;">
-                  <input type="number" id="pz-ce-f4a" min="0" max="365" style="width:70px;" placeholder="0"/> a
-                  <input type="number" id="pz-ce-f4b" min="0" max="365" style="width:70px;" placeholder="14"/> dias
-                </div>
-              </div>
-            </div>
-
-            <div style="border:1px solid #e0e0e0;border-radius:8px;padding:16px;">
-              <h4 style="margin:0 0 12px;color:#24527a;">Contrato Licitações</h4>
-              <div class="form-group" style="margin-bottom:8px;">
-                <label style="font-size:0.8rem;">Faixa 1 (mais longe)</label>
-                <div style="display:flex;gap:6px;align-items:center;">
-                  <input type="number" id="pz-li-f1a" min="0" max="365" style="width:70px;" placeholder="31"/> a
-                  <input type="number" id="pz-li-f1b" min="0" max="365" style="width:70px;" placeholder="35"/> dias
-                </div>
-              </div>
-              <div class="form-group" style="margin-bottom:8px;">
-                <label style="font-size:0.8rem;">Faixa 2</label>
-                <div style="display:flex;gap:6px;align-items:center;">
-                  <input type="number" id="pz-li-f2a" min="0" max="365" style="width:70px;" placeholder="16"/> a
-                  <input type="number" id="pz-li-f2b" min="0" max="365" style="width:70px;" placeholder="30"/> dias
-                </div>
-              </div>
-              <div class="form-group" style="margin-bottom:8px;">
-                <label style="font-size:0.8rem;">Faixa 3 (exato)</label>
-                <input type="number" id="pz-li-f3" min="0" max="365" style="width:70px;" placeholder="15"/> dias
-              </div>
-              <div class="form-group">
-                <label style="font-size:0.8rem;">Faixa 4 (mais curto — atenção diária)</label>
-                <div style="display:flex;gap:6px;align-items:center;">
-                  <input type="number" id="pz-li-f4a" min="0" max="365" style="width:70px;" placeholder="0"/> a
-                  <input type="number" id="pz-li-f4b" min="0" max="365" style="width:70px;" placeholder="14"/> dias
-                </div>
-              </div>
-            </div>
-
-            <div style="border:1px solid #e0e0e0;border-radius:8px;padding:16px;">
               <h4 style="margin:0 0 12px;color:#1a5c35;">Pagamentos</h4>
               <div class="form-group" style="margin-bottom:8px;">
                 <label style="font-size:0.8rem;">Tipos de alerta</label>
@@ -1827,14 +1476,11 @@
           </div>
         </div>
         <div class="btn-row" style="margin-top:16px;flex-wrap:wrap;">
-          <button class="btn btn-primary" onclick="salvarConfig()">Salvar Configuração</button>
-          <button class="btn btn-success" onclick="enviarLembretePagamentos()">Enviar Lembrete de Pagamentos</button>
-          <button class="btn btn-warning" onclick="enviarAlertasContratos()" style="background:#c0392b;">Enviar Alertas de Contratos</button>
-          <button class="btn btn-warning" onclick="enviarAlertasCertidoes()" style="background:#d4820a;">Enviar Alertas de Certidões</button>
-          <button class="btn btn-warning" onclick="enviarAlertasLicitacoes()" style="background:#24527a;">Enviar Alertas de Contrato Licitações</button>
-        </div>
-        <div id="cfg-msg" style="margin-top:12px;display:none;" class="info-box"></div>
+          <button class="btn btn-primary" id="btn-salvar-config" onclick="salvarConfig()">Salvar Configuração</button>
+          <button class="btn btn-success" id="btn-enviar-lembrete" onclick="enviarLembretePagamentos()">Enviar Lembrete de Pagamentos</button>
+          <button class="btn btn-warning" id="btn-enviar-alertas" onclick="enviarAlertasContratos()" style="background:#c0392b;">Enviar Alertas de Contratos</button>
       </div>
+      <div id="cfg-msg" style="display:none;margin-top:12px;" class="ok-box"></div>
     </div>
 
     <!-- HISTORICO -->
@@ -2154,7 +1800,7 @@ function doLogin() {
         sessionStorage.setItem('user', JSON.stringify(data.user));
         onDBReady(checkLogin);
       } else {
-        mostrarToast('Usuario ou senha incorretos!', 'erro');
+        mostrarToast(data.erro || 'Usuario ou senha incorretos!', 'erro');
       }
     })
     .catch(() => {
@@ -2325,8 +1971,6 @@ let cachedUserEmpresas = [];
 let cachedDestinatarios = [];
 let cachedSectors = [];
 let cachedUserSetores = [];
-let cachedCertidoes = [];
-let cachedLicitacoes = [];
 
 const requestDB = indexedDB.open("ControleContratos", 8);
 requestDB.onupgradeneeded = (e) => {
@@ -2340,8 +1984,6 @@ requestDB.onupgradeneeded = (e) => {
   if (!db.objectStoreNames.contains("destinatarios")) { db.createObjectStore("destinatarios", { keyPath: "id" }); console.log('Created store: destinatarios'); }
   if (!db.objectStoreNames.contains("sectors")) { db.createObjectStore("sectors", { keyPath: "id" }); console.log('Created store: sectors'); }
   if (!db.objectStoreNames.contains("user_setores")) { db.createObjectStore("user_setores", { keyPath: "userId" }); console.log('Created store: user_setores'); }
-  if (!db.objectStoreNames.contains("certidoes")) { db.createObjectStore("certidoes", { keyPath: "id" }); console.log('Created store: certidoes'); }
-  if (!db.objectStoreNames.contains("licitacoes")) { db.createObjectStore("licitacoes", { keyPath: "id" }); console.log('Created store: licitacoes'); }
   console.log('Stores after upgrade:', Array.from(db.objectStoreNames));
 };
 requestDB.onerror = (e) => {
@@ -2404,7 +2046,7 @@ function loadDataFromDB() {
     cachedContratos = r.contratos || [];
     cachedPagamentos = r.pagamentos || [];
 
-    carregar(["tipos", "empresas", "user_empresas", "destinatarios", "sectors", "user_setores", "certidoes", "licitacoes"], (r2) => {
+    carregar(["tipos", "empresas", "user_empresas", "destinatarios", "sectors", "user_setores"], (r2) => {
       console.log('Loaded tipos:', r2.tipos?.length, 'empresas:', r2.empresas?.length, 'user_empresas:', r2.user_empresas?.length, 'sectors:', r2.sectors?.length, 'user_setores:', r2.user_setores?.length);
       cachedTipos = r2.tipos || [];
       // Deduplica tipos por nome (corrige duplicatas de upgrades anteriores)
@@ -2426,8 +2068,6 @@ function loadDataFromDB() {
       cachedDestinatarios = r2.destinatarios || [];
       cachedSectors = r2.sectors || [];
       cachedUserSetores = r2.user_setores || [];
-      cachedCertidoes = r2.certidoes || [];
-      cachedLicitacoes = r2.licitacoes || [];
 
       if (cachedTipos.length === 0) {
         try {
@@ -2443,7 +2083,7 @@ function loadDataFromDB() {
       }
 
       showPage('dashboard', document.querySelector('nav button'));
-      loadFromServer().then(() => syncToServer()).catch(e => console.error('[SYNC] Erro no sync inicial:', e));
+      loadFromServer().catch(e => console.error('[SYNC] Erro ao carregar do servidor:', e));
     });
   });
 }
@@ -2468,12 +2108,6 @@ function saveEmpresas(arr) {
     t.objectStore("empresas").clear();
     arr.forEach(a => t.objectStore("empresas").put(a));
   } catch (e) { console.error('[DB] saveEmpresas erro:', e.message); }
-  arr.forEach(a => {
-    fetch('/api/companies', {
-      method:'POST', headers:Object.assign({'Content-Type':'application/json'}, csrfHeaders()),
-      body:JSON.stringify({ id: a.id, nome: a.nome, cnpj: a.cnpj || '', active: a.active !== undefined ? a.active : 1 })
-    }).catch(() => {});
-  });
 }
 
 function getUserEmpresas(userId) {
@@ -2503,7 +2137,7 @@ function getLoggedUserEmpresaIds() {
 }
 
 function getDestinatarios() { return cachedDestinatarios.filter(d => !d.deleted_at); }
-function saveDestinatarios(arr, skipSync) {
+function saveDestinatarios(arr) {
   cachedDestinatarios = arr;
   try {
     if (!db) return;
@@ -2553,30 +2187,6 @@ function getLoggedUserSetorIds() {
   });
   if (temFinanceiro) return null;
   return us.setorIds;
-}
-
-// ===================== CERTIDOES =====================
-function getCertidoes() { return cachedCertidoes.filter(c => !c.deleted_at); }
-function saveCertidoes(arr) {
-  cachedCertidoes = arr;
-  try {
-    if (!db) return;
-    const t = db.transaction("certidoes", "readwrite");
-    t.objectStore("certidoes").clear();
-    arr.forEach(a => t.objectStore("certidoes").put(a));
-  } catch (e) { console.error('[DB] saveCertidoes erro:', e.message); }
-}
-
-// ===================== LICITACOES =====================
-function getLicitacoes() { return cachedLicitacoes.filter(l => !l.deleted_at); }
-function saveLicitacoes(arr) {
-  cachedLicitacoes = arr;
-  try {
-    if (!db) return;
-    const t = db.transaction("licitacoes", "readwrite");
-    t.objectStore("licitacoes").clear();
-    arr.forEach(a => t.objectStore("licitacoes").put(a));
-  } catch (e) { console.error('[DB] saveLicitacoes erro:', e.message); }
 }
 
 function popularTipoSelect() {
@@ -2677,6 +2287,59 @@ function popularEmpresaSelect() {
   if (atual) sel.value = atual;
 }
 
+function buscarEmpresaPorCnpj() {
+  const cnpjInput = document.getElementById('f-cnpj-empresa');
+  const empresaSelect = document.getElementById('f-empresa');
+  const info = document.getElementById('f-empresa-info');
+  if (!cnpjInput || !empresaSelect) return;
+  const cnpjDigitado = cnpjInput.value.replace(/\D/g, '');
+  if (cnpjDigitado.length < 11) {
+    if (info) info.textContent = '';
+    return;
+  }
+  const empresa = getEmpresas().find(e => {
+    if (e.active === 0) return false;
+    const cnpjLimpo = (e.cnpj || '').replace(/\D/g, '');
+    return cnpjLimpo === cnpjDigitado;
+  });
+  if (empresa) {
+    empresaSelect.value = empresa.id;
+    if (info) {
+      info.innerHTML = '<strong>' + escapeHtml(empresa.nome) + '</strong>' + (empresa.uf ? ' — UF: <strong>' + empresa.uf + '</strong>' : '');
+      info.style.color = '#2a7';
+    }
+  } else {
+    empresaSelect.value = '';
+    if (info) { info.textContent = 'Nenhuma empresa encontrada com este CNPJ.'; info.style.color = '#c33'; }
+  }
+}
+
+function onEmpresaSelectChange() {
+  const empresaSelect = document.getElementById('f-empresa');
+  const cnpjInput = document.getElementById('f-cnpj-empresa');
+  const info = document.getElementById('f-empresa-info');
+  if (!empresaSelect || !empresaSelect.value) {
+    if (cnpjInput) cnpjInput.value = '';
+    if (info) { info.textContent = ''; info.style.color = '#888'; }
+    return;
+  }
+  const empresa = getEmpresas().find(e => e.id === empresaSelect.value);
+  if (empresa) {
+    if (cnpjInput) { cnpjInput.value = empresa.cnpj || ''; }
+    if (info) {
+      info.innerHTML = '<strong>' + escapeHtml(empresa.nome) + '</strong>' + (empresa.uf ? ' — UF: <strong>' + empresa.uf + '</strong>' : '');
+      info.style.color = '#2a7';
+    }
+  }
+}
+
+function dropdownLabel(item, labelKey) {
+  if (Array.isArray(labelKey)) {
+    return labelKey.map(k => item[k]).filter(Boolean).join(' — ');
+  }
+  return item[labelKey];
+}
+
 function renderTagsDropdown(containerId, allItems, selectedIds, labelKey, filterActive) {
   const wrap = document.getElementById(containerId);
   if (!wrap) return;
@@ -2702,7 +2365,7 @@ function renderTagsDropdown(containerId, allItems, selectedIds, labelKey, filter
   function render() {
     const sel = new Set(wrap._selectedIds);
     const tags = items.filter(i => sel.has(i.id)).map(i =>
-      `<span class="tag-item">${escapeHtml(i[labelKey])}<span class="tag-remove" data-id="${i.id}">&times;</span></span>`
+      `<span class="tag-item">${escapeHtml(dropdownLabel(i, labelKey))}<span class="tag-remove" data-id="${i.id}">&times;</span></span>`
     ).join('');
 
     wrap.innerHTML = `
@@ -2741,7 +2404,7 @@ function renderTagsList(containerId, items, labelKey) {
   const wrap = document.getElementById(containerId);
   const sel = new Set(wrap._selectedIds);
   const search = (list.closest('.tags-dropdown-panel')?.querySelector('.td-search')?.value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const filtered = items.filter(i => !search || i[labelKey].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(search));
+  const filtered = items.filter(i => !search || dropdownLabel(i, labelKey).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(search));
 
   if (!filtered.length) {
     list.innerHTML = '<div class="tags-dropdown-empty">Nenhum item encontrado</div>';
@@ -2750,7 +2413,7 @@ function renderTagsList(containerId, items, labelKey) {
   list.innerHTML = filtered.map(i => `
     <label class="tags-dropdown-item ${sel.has(i.id) ? 'checked' : ''}">
       <input type="checkbox" value="${i.id}" ${sel.has(i.id) ? 'checked' : ''}/>
-      <span>${escapeHtml(i[labelKey])}</span>
+      <span>${escapeHtml(dropdownLabel(i, labelKey))}</span>
     </label>
   `).join('');
 
@@ -2771,7 +2434,7 @@ function renderTagsDropdown_updateTags(containerId, items, labelKey) {
   if (!wrap) return;
   const sel = new Set(wrap._selectedIds);
   const tags = items.filter(i => sel.has(i.id)).map(i =>
-    `<span class="tag-item">${escapeHtml(i[labelKey])}<span class="tag-remove" data-id="${i.id}">&times;</span></span>`
+    `<span class="tag-item">${escapeHtml(dropdownLabel(i, labelKey))}<span class="tag-remove" data-id="${i.id}">&times;</span></span>`
   ).join('');
   const trigger = wrap.querySelector('.tags-dropdown-trigger');
   if (trigger) {
@@ -2839,18 +2502,26 @@ function popularEmpresaCheckboxes() {
     return;
   }
   container._allItems = empresas;
-  container._labelKey = 'nome';
-  renderTagsDropdown('mu-empresas-dual', empresas, container._selectedIds || [], 'nome', true);
+  container._labelKey = ['cnpj', 'nome'];
+  renderTagsDropdown('mu-empresas-dual', empresas, container._selectedIds || [], ['cnpj', 'nome'], true);
 }
 
 let _editandoEmpresaId = null;
+
+const UFS_BRASIL = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+
+function popularEmpresaUfDropdown(selected) {
+  const sel = document.getElementById('nova-empresa-uf');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">UF</option>' + UFS_BRASIL.map(uf => `<option value="${uf}"${uf === selected ? ' selected' : ''}>${uf}</option>`).join('');
+}
 
 function renderEmpresasConfig() {
   const tb = document.getElementById('tb-empresas');
   if (!tb) return;
   const empresas = getEmpresas();
   if (!empresas.length) {
-    tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#aaa;padding:32px">Nenhuma empresa cadastrada.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:32px">Nenhuma empresa cadastrada.</td></tr>';
     return;
   }
   const _user = JSON.parse(sessionStorage.getItem('user') || '{}');
@@ -2861,6 +2532,7 @@ function renderEmpresasConfig() {
     <td>${i + 1}</td>
     <td>${escapeHtml(e.nome)} ${ativo ? '' : '<span class="badge badge-vencido">Inativo</span>'}</td>
     <td>${e.cnpj || '—'}</td>
+    <td>${e.uf || '—'}</td>
     <td style="display:flex;gap:4px;">
       <button class="btn btn-sm btn-primary" onclick="editarEmpresa('${e.id}')" style="padding:2px 8px;font-size:0.75rem;">Editar</button>
       <button class="btn btn-sm ${ativo ? 'btn-warning' : 'btn-secondary'}" onclick="inativarEmpresa('${e.id}')" style="padding:2px 8px;font-size:0.75rem;">${ativo ? 'Inativar' : 'Ativar'}</button>
@@ -2873,6 +2545,7 @@ function limparFormEmpresa() {
   _editandoEmpresaId = null;
   document.getElementById('nova-empresa-nome').value = '';
   document.getElementById('nova-empresa-cnpj').value = '';
+  popularEmpresaUfDropdown('');
   document.getElementById('btn-salvar-empresa').textContent = 'Adicionar';
 }
 
@@ -2882,67 +2555,96 @@ function editarEmpresa(id) {
   _editandoEmpresaId = id;
   document.getElementById('nova-empresa-nome').value = e.nome;
   document.getElementById('nova-empresa-cnpj').value = e.cnpj || '';
+  popularEmpresaUfDropdown(e.uf || '');
   document.getElementById('btn-salvar-empresa').textContent = 'Salvar';
 }
 
-function salvarEmpresa() {
+async function salvarEmpresa() {
   const nome = document.getElementById('nova-empresa-nome').value.trim();
   const cnpj = document.getElementById('nova-empresa-cnpj').value.trim();
+  const uf = document.getElementById('nova-empresa-uf').value;
   if (!nome) { mostrarToast('Informe o nome da empresa.', 'erro'); return; }
   if (!cnpj) { mostrarToast('Informe o CNPJ da empresa.', 'erro'); return; }
+  if (!uf) { mostrarToast('Selecione a UF da empresa.', 'erro'); return; }
   const cnpjNumeros = cnpj.replace(/\D/g, '');
   if (cnpjNumeros.length !== 14 && cnpjNumeros.length !== 11) {
     mostrarToast('CNPJ/CPF invalido. Informe um CNPJ com 14 digitos ou CPF com 11 digitos.', 'erro'); return;
   }
   const empresas = getEmpresas();
-  const duplicata = empresas.find(e => e.nome.toLowerCase() === nome.toLowerCase() && e.id !== _editandoEmpresaId);
-  if (duplicata) { mostrarToast('Esta empresa ja existe.', 'erro'); return; }
+  const duplicata = empresas.find(e => e.id !== _editandoEmpresaId && cnpjNumeros && (e.cnpj || '').replace(/\D/g, '') === cnpjNumeros);
+  if (duplicata) { mostrarToast('CNPJ ja cadastrado na empresa "' + duplicata.nome + '".', 'erro'); return; }
 
   if (_editandoEmpresaId) {
-    const idx = empresas.findIndex(e => e.id === _editandoEmpresaId);
+    const editId = _editandoEmpresaId;
+    const idx = empresas.findIndex(e => e.id === editId);
     if (idx !== -1) {
       empresas[idx].nome = nome;
       empresas[idx].cnpj = cnpj;
+      empresas[idx].uf = uf;
+    }
+    saveEmpresas(empresas);
+    limparFormEmpresa();
+    renderEmpresasConfig();
+    popularEmpresaSelect();
+    popularEmpresaCheckboxes();
+    popularDestEmpresaCheckboxes();
+    const r = await apiCall('PUT', 'companies/' + editId, { nome, cnpj, uf });
+    if (r && r.ok) {
+      mostrarToast('Empresa salva com sucesso!', 'sucesso');
+    } else {
+      mostrarToast('Erro ao salvar empresa no servidor: ' + (r?.erro || 'desconhecido'), 'erro');
     }
   } else {
-    empresas.push({ id: uid(), nome, cnpj, active: 1, criadoEm: new Date().toISOString() });
+    const newId = uid();
+    empresas.push({ id: newId, nome, cnpj, uf, active: 1, criadoEm: new Date().toISOString() });
+    saveEmpresas(empresas);
+    limparFormEmpresa();
+    renderEmpresasConfig();
+    popularEmpresaSelect();
+    popularEmpresaCheckboxes();
+    popularDestEmpresaCheckboxes();
+    const r = await apiCall('POST', 'companies', { id: newId, nome, cnpj, uf, active: 1 });
+    if (r && r.ok) {
+      mostrarToast('Empresa salva com sucesso!', 'sucesso');
+    } else {
+      mostrarToast('Erro ao salvar empresa no servidor: ' + (r?.erro || 'desconhecido'), 'erro');
+    }
   }
-  saveEmpresas(empresas);
-  limparFormEmpresa();
-  renderEmpresasConfig();
-  popularEmpresaSelect();
-  popularEmpresaCheckboxes();
-  popularDestEmpresaCheckboxes();
-  mostrarToast('Empresa salva com sucesso!', 'sucesso');
 }
 
-function excluirEmpresa(id) {
+async function excluirEmpresa(id) {
   if (!confirm('Excluir esta empresa?')) return;
   const empresas = getEmpresas().filter(e => e.id !== id);
   saveEmpresas(empresas);
-  fetch('/api/companies/' + id, { method:'DELETE', headers:csrfHeaders() }).catch(() => {});
   limparFormEmpresa();
   renderEmpresasConfig();
   popularEmpresaSelect();
   popularEmpresaCheckboxes();
   popularDestEmpresaCheckboxes();
-  mostrarToast('Empresa excluida.', 'sucesso');
+  const r = await apiCall('DELETE', 'companies/' + id);
+  if (r && r.ok) {
+    mostrarToast('Empresa excluida.', 'sucesso');
+  } else {
+    mostrarToast('Erro ao excluir: ' + (r?.erro || 'desconhecido'), 'erro');
+  }
 }
 
-function inativarEmpresa(id) {
+async function inativarEmpresa(id) {
   const empresas = getEmpresas();
   const e = empresas.find(x => x.id === id);
   if (!e) return;
   e.active = e.active === 0 ? 1 : 0;
   saveEmpresas(empresas);
-  getCsrfToken().then(() => {
-    fetch('/api/companies/' + id, { method:'PUT', headers:Object.assign({'Content-Type':'application/json'}, csrfHeaders()), body:JSON.stringify({ active: e.active }) }).catch(() => {});
-  });
   renderEmpresasConfig();
   popularEmpresaSelect();
   popularEmpresaCheckboxes();
   popularDestEmpresaCheckboxes();
-  mostrarToast(`Empresa ${e.active ? 'ativada' : 'inativada'} com sucesso.`, 'sucesso');
+  const r = await apiCall('PUT', 'companies/' + id, { active: e.active });
+  if (r && r.ok) {
+    mostrarToast(`Empresa ${e.active ? 'ativada' : 'inativada'}.`, 'sucesso');
+  } else {
+    mostrarToast('Erro ao atualizar: ' + (r?.erro || 'desconhecido'), 'erro');
+  }
 }
 
 // ===================== SETORES =====================
@@ -3099,7 +2801,7 @@ function renderDestinatariosConfig() {
   }
   const empresas = getEmpresas();
   const sects = getSectors();
-  const alertaLabels = { contratos: 'Contratos', pagamentos: 'Pagamentos', certidoes: 'Certidões', licitacoes: 'Contrato Licitações' };
+  const alertaLabels = { contratos: 'Contratos', pagamentos: 'Pagamentos' };
   tb.innerHTML = dests.map(d => {
     const nomes = (d.empresaIds || []).map(id => {
       const e = empresas.find(x => x.id === id);
@@ -3160,7 +2862,7 @@ function editarDestinatario(id) {
   popularDestSetoresCheckboxes();
 }
 
-function salvarDestinatario() {
+async function salvarDestinatario() {
   const email = document.getElementById('dest-email').value.trim();
   const nome = document.getElementById('dest-nome').value.trim();
   const checks = document.querySelectorAll('#dest-empresas-checkboxes input[type="checkbox"]:checked');
@@ -3174,27 +2876,48 @@ function salvarDestinatario() {
   const duplicata = dests.find(d => d.email.toLowerCase() === email.toLowerCase() && d.id !== _editandoDestId);
   if (duplicata) { mostrarToast('Este e-mail ja esta cadastrado.', 'erro'); return; }
   if (!alertas.length) { mostrarToast('Selecione ao menos um tipo de alerta.', 'erro'); return; }
-  if (_editandoDestId) {
-    const idx = dests.findIndex(d => d.id === _editandoDestId);
-    if (idx !== -1) { dests[idx].email = email; dests[idx].nome = nome; dests[idx].empresaIds = empresaIds; dests[idx].setores = setores; dests[idx].alertas = alertas; dests[idx].updated_at = now(); }
-  } else {
-    dests.push({ id: uid(), email, nome, empresaIds, setores, alertas, criadoEm: now(), updated_at: now() });
+  _saveSyncRunning = true;
+  try {
+    if (_editandoDestId) {
+      const idx = dests.findIndex(d => d.id === _editandoDestId);
+      const r = await apiCall('PUT', 'destinatarios/' + _editandoDestId, { email, nome, empresaIds, setores, alertas, updated_at: now() });
+      if (!r || !r.ok) throw new Error(r?.erro || 'Erro ao atualizar destinatario');
+      if (idx !== -1) { dests[idx].email = email; dests[idx].nome = nome; dests[idx].empresaIds = empresaIds; dests[idx].setores = setores; dests[idx].alertas = alertas; dests[idx].updated_at = now(); }
+    } else {
+      const newId = uid();
+      const r = await apiCall('POST', 'destinatarios', { id: newId, email, nome, empresaIds, setores, alertas, criadoEm: now(), updated_at: now() });
+      if (!r || !r.ok) throw new Error(r?.erro || 'Erro ao criar destinatario');
+      dests.push({ id: newId, email, nome, empresaIds, setores, alertas, criadoEm: now(), updated_at: now() });
+    }
+    saveDestinatarios(dests);
+    limparFormDestinatario();
+    renderDestinatariosConfig();
+    mostrarToast('Destinatario salvo com sucesso!', 'sucesso');
+  } catch (e) {
+    mostrarToast('Erro ao salvar destinatario: ' + e.message, 'erro');
+  } finally {
+    _saveSyncRunning = false;
   }
-  saveDestinatarios(dests);
-  limparFormDestinatario();
-  renderDestinatariosConfig();
-  mostrarToast('Destinatario salvo com sucesso!', 'sucesso');
 }
 
-function excluirDestinatario(id) {
+async function excluirDestinatario(id) {
   if (!confirm('Excluir este destinatario?')) return;
-  const dests = getDestinatarios();
-  const idx = dests.findIndex(d => d.id === id);
-  if (idx !== -1) { dests[idx].deleted_at = now(); dests[idx].updated_at = now(); }
-  saveDestinatarios(dests);
-  limparFormDestinatario();
-  renderDestinatariosConfig();
-  mostrarToast('Destinatario excluido.', 'sucesso');
+  _saveSyncRunning = true;
+  try {
+    const r = await apiCall('DELETE', 'destinatarios/' + id);
+    if (!r || !r.ok) throw new Error(r?.erro || 'Erro ao excluir destinatario');
+    const dests = getDestinatarios();
+    const idx = dests.findIndex(d => d.id === id);
+    if (idx !== -1) { dests[idx].deleted_at = now(); dests[idx].updated_at = now(); }
+    saveDestinatarios(dests);
+    limparFormDestinatario();
+    renderDestinatariosConfig();
+    mostrarToast('Destinatario excluido.', 'sucesso');
+  } catch (e) {
+    mostrarToast('Erro ao excluir: ' + e.message, 'erro');
+  } finally {
+    _saveSyncRunning = false;
+  }
 }
 
 function getContratos() { return cachedContratos.filter(c => !c.deleted_at); }
@@ -3221,90 +2944,6 @@ function savePagamentos(arr) {
     console.error('[DB] savePagamentos erro:', e.message);
   }
 }
-
-function syncToServer() {
-  if (!db) return Promise.resolve();
-  const MAX_SYNC_SIZE = 3.5 * 1024 * 1024;
-  const prepareRecord = (r) => r;
-  const fullSnapshot = {
-    contratos: (cachedContratos || []).map(r => prepareRecord(r)),
-    pagamentos: (cachedPagamentos || []).map(r => prepareRecord(r)),
-    destinatarios: (cachedDestinatarios || []).map(r => prepareRecord(r)),
-    certidoes: (cachedCertidoes || []).map(r => prepareRecord(r)),
-    licitacoes: (cachedLicitacoes || []).map(r => prepareRecord(r)),
-    last_sync_at: _lastSyncAt
-  };
-  let payloadStr = JSON.stringify(fullSnapshot);
-  let skippedFiles = 0;
-  if (payloadStr.length > MAX_SYNC_SIZE) {
-    const stripLargeFiles = (arr, fileFields) => {
-      arr.forEach(r => {
-        fileFields.forEach(f => {
-          if (r[f] && typeof r[f] === 'object' && r[f].data && r[f].data.length > 10000) {
-            delete r[f];
-            skippedFiles++;
-          } else if (r[f] && typeof r[f] === 'string' && r[f].length > 10000) {
-            r[f] = '[]';
-            skippedFiles++;
-          }
-        });
-      });
-    };
-    stripLargeFiles(fullSnapshot.contratos, ['arquivo']);
-    stripLargeFiles(fullSnapshot.pagamentos, ['comprovante']);
-    stripLargeFiles(fullSnapshot.certidoes, ['arquivo']);
-    stripLargeFiles(fullSnapshot.licitacoes, ['arquivos']);
-    payloadStr = JSON.stringify(fullSnapshot);
-  }
-  if (payloadStr.length > MAX_SYNC_SIZE) {
-    const nukeFiles = (arr, fileFields) => {
-      arr.forEach(r => { fileFields.forEach(f => { if (r[f]) { delete r[f]; skippedFiles++; } }); });
-    };
-    nukeFiles(fullSnapshot.contratos, ['arquivo']);
-    nukeFiles(fullSnapshot.pagamentos, ['comprovante']);
-    nukeFiles(fullSnapshot.certidoes, ['arquivo']);
-    nukeFiles(fullSnapshot.licitacoes, ['arquivos']);
-    payloadStr = JSON.stringify(fullSnapshot);
-  }
-  const total = fullSnapshot.contratos.length + fullSnapshot.pagamentos.length + fullSnapshot.destinatarios.length + fullSnapshot.certidoes.length + fullSnapshot.licitacoes.length;
-  console.log('[SYNC-POST] Enviando TODOS:', total, 'registros, payload:', Math.round(payloadStr.length/1024), 'KB', skippedFiles > 0 ? '(arquivos omitidos: ' + skippedFiles + ')' : '(com anexos)');
-  return getCsrfToken().then(() => {
-    return fetch('/api/sync', {
-      method:'POST', headers:Object.assign({'Content-Type':'application/json'}, csrfHeaders()),
-      body: payloadStr
-    }).then(r => {
-      if (r.status === 413 || r.status === 502) {
-        console.error('[SYNC] Payload grande demais:', r.status);
-        mostrarToast('Sincronizacao com problemas. Alguns anexos podem nao ter sido enviados.', 'erro');
-        return null;
-      }
-      if (r.status === 401) {
-        console.error('[SYNC] Sessao expirada (401)');
-        sessionStorage.removeItem('logged_in');
-        mostrarToast('Sessao expirada. Faca login novamente.', 'erro');
-        mostrarLogin();
-        return null;
-      }
-      return r.json();
-    }).then(resp => {
-      if (resp && !resp.ok) {
-        console.error('[SYNC] Erro do servidor:', resp.erro)
-        mostrarToast('Erro na sincronizacao: ' + (resp.erro || 'desconhecido'), 'erro');
-      } else if (resp) {
-        console.log('[SYNC-POST] Resposta:', resp.importados);
-      }
-      return resp;
-    }).catch(e => {
-      console.error('[SYNC] Falha na conexao:', e)
-      mostrarToast('Falha ao sincronizar. Verifique sua internet.', 'erro');
-      return null;
-    });
-  }).catch(e => {
-    console.error('[SYNC] Falha no CSRF:', e);
-    return null;
-  });
-}
-
 
 function mapServerContract(c) {
   let arquivo = null;
@@ -3354,6 +2993,7 @@ function mapServerAdditive(a) {
 }
 
 function loadFromServer() {
+  loadFromServer.ok = false;
   return fetch('/api/sync').then(r => {
     if (r.status === 401) {
       console.error('[SYNC-GET] Sessao expirada (401)');
@@ -3388,50 +3028,15 @@ function loadFromServer() {
       alertas: (typeof d.alertas === 'string' ? JSON.parse(d.alertas || '[]') : (d.alertas || [])),
       criadoEm: d.criado_em, updated_at: d.updated_at || null, deleted_at: d.deleted_at || null
     }));
-    const certidoes = (data.certidoes || []).filter(ct => !ct.deleted_at).map(ct => {
-      let arquivo = null;
-      if (ct.arquivo_dados) { try { arquivo = JSON.parse(ct.arquivo_dados); } catch(e) {} }
-      if (!arquivo && ct.arquivo_nome) arquivo = { name: ct.arquivo_nome, data: '' };
-      return {
-        id: ct.id, empresaId: ct.empresa_id, cnpj: ct.cnpj || '', uf: ct.uf || '', cidade: ct.cidade || '',
-        tipo: ct.tipo, dataEmissao: ct.data_emissao, dataValidade: ct.data_validade,
-        status: ct.status, arquivo: arquivo,
-        obs: ct.observacoes || '', criadoEm: ct.criado_em,
-        updated_at: ct.updated_at || null, deleted_at: ct.deleted_at || null
-      };
-    });
-    const licitacoes = (data.licitacoes || []).filter(lc => !lc.deleted_at).map(lc => {
-      let arquivos = [];
-      if (lc.arquivos) { try { arquivos = typeof lc.arquivos === 'string' ? JSON.parse(lc.arquivos) : lc.arquivos; } catch(e) {} }
-      return {
-        id: lc.id, numeroLicitacao: lc.numero_licitacao, edital: lc.edital,
-        nomeLicitacao: lc.nome_licitacao || '', cnpj: lc.cnpj || '',
-        objeto: lc.objeto, empresaId: lc.empresa_id, contratoId: lc.contrato_id,
-        valor: lc.valor, dataHomologacao: lc.data_homologacao,
-        dataInicio: lc.data_inicio, dataFim: lc.data_fim,
-        status: lc.status, arquivos: arquivos,
-        obs: lc.observacoes || '', criadoEm: lc.criado_em,
-        updated_at: lc.updated_at || null, deleted_at: lc.deleted_at || null
-      };
-    });
-    if (_saveSyncRunning) {
-      console.log('[SYNC-GET] Pulando merge: save em andamento.');
-    } else {
-      cachedContratos = contratos;
-      cachedPagamentos = pagamentos;
-      cachedCertidoes = certidoes;
-      cachedLicitacoes = licitacoes;
-      cachedDestinatarios = destinatarios;
-      saveContratos(cachedContratos); savePagamentos(cachedPagamentos);
-      saveDestinatarios(cachedDestinatarios, true); saveCertidoes(cachedCertidoes); saveLicitacoes(cachedLicitacoes);
-    }
-    _lastSyncAt = data.server_now || now();
+    cachedContratos = contratos;
+    cachedPagamentos = pagamentos;
+    cachedDestinatarios = destinatarios;
+    saveContratos(cachedContratos); savePagamentos(cachedPagamentos);
+    saveDestinatarios(cachedDestinatarios);
     if (data.server_now) {
       _serverOffset = new Date(data.server_now).getTime() - Date.now();
       saveServerOffset();
-      console.log('[SYNC] Offset do servidor calculado:', _serverOffset, 'ms');
     }
-    saveLastSyncAt();
     const activePage = document.querySelector('.page.active');
     if (activePage) {
       const id = activePage.id.replace('page-', '');
@@ -3441,7 +3046,7 @@ function loadFromServer() {
     }
     if (data.empresas) {
       const serverEmpresas = data.empresas.map(e => ({
-        id: e.id, nome: e.nome, cnpj: e.cnpj || '',
+        id: e.id, nome: e.nome, cnpj: e.cnpj || '', uf: e.uf || '',
         criadoEm: e.criado_em, active: e.active !== undefined ? e.active : 1
       }));
       cachedEmpresas = serverEmpresas; saveEmpresas(serverEmpresas);
@@ -3469,16 +3074,38 @@ function loadFromServer() {
           }
         } catch (e) { console.error('[DB] user_setores loadFromServer erro:', e.message); }
       }
+    loadFromServer.ok = true;
     setTimeout(checkNotificacoes, 500);
   }).catch(e => {
     console.error('[SYNC] loadFromServer falhou:', e);
     const indicator = document.getElementById('sync-indicator');
-    if (indicator) { indicator.style.display = 'inline'; indicator.style.color = '#f66'; indicator.textContent = '● Falha ao sincronizar - retentando...'; }
-    _pendingSync = true;
+    if (indicator) { indicator.style.display = 'inline'; indicator.style.color = '#f66'; indicator.textContent = '● Falha ao carregar dados'; setTimeout(() => { indicator.style.display = 'none'; }, 5000); }
   });
 }
 
+function atualizarDados(btn) {
+  if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = 'Atualizando...'; }
+  loadFromServer().then(() => {
+    if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || 'Atualizar'; }
+    if (loadFromServer.ok) mostrarToast('Dados atualizados com sucesso!', 'sucesso');
+    else mostrarToast('Falha ao atualizar dados.', 'erro');
+  });
+}
+
+const MAX_FILE_SIZE = 3 * 1024 * 1024;
+
+function validarArquivo(file) {
+  if (!file) return true;
+  if (file.size > MAX_FILE_SIZE) {
+    const tamanhoMB = (file.size / (1024 * 1024)).toFixed(1);
+    mostrarToast('Arquivo muito grande (' + tamanhoMB + ' MB). O limite e 3 MB.', 'erro');
+    return false;
+  }
+  return true;
+}
+
 function fileToBase64(file) {
+  if (!validarArquivo(file)) return Promise.reject(new Error('Arquivo muito grande'));
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -3516,6 +3143,10 @@ let _arquivoContrato = null;
 
 function onArquivoChange(input) {
   if (input.files && input.files[0]) {
+    if (!validarArquivo(input.files[0])) {
+      input.value = '';
+      return;
+    }
     _arquivoContrato = input.files[0];
     const info = document.getElementById('f-arquivo-info');
     const nome = document.getElementById('f-arquivo-nome');
@@ -3538,998 +3169,6 @@ function removerArquivoContrato() {
   if (nome) nome.innerText = '';
 }
 
-// ===================== CERTIDOES =====================
-const TIPOS_CERTIDAO = [
-  'Cartão CNPJ Ativo (Receita Federal)',
-  'Inscrição Municipal',
-  'CND Federal',
-  'CND Estadual',
-  'CND Municipal',
-  'CNDT (Trabalhista)',
-  'CRF (FGTS)',
-  'Prova de Regularidade c/ Seguridade Social',
-  'Atestado de Capacidade c/ Seguridade Social',
-  'Atestado de Capacidade Técnica Profissional (CRN)',
-  'Inscrição Entidade Profissional (CRN)',
-  'Alvará de Funcionamento',
-  'AVCB (Corpo de Bombeiros)',
-  'Alvará Sanitário',
-  'Outros'
-];
-
-const UFS_BRASIL = ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
-const UF_NOMES = {'AC':'Acre','AL':'Alagoas','AM':'Amazonas','AP':'Amapá','BA':'Bahia','CE':'Ceará','DF':'Distrito Federal','ES':'Espírito Santo','GO':'Goiás','MA':'Maranhão','MG':'Minas Gerais','MS':'Mato Grosso do Sul','MT':'Mato Grosso','PA':'Pará','PB':'Paraíba','PE':'Pernambuco','PI':'Piauí','PR':'Paraná','RJ':'Rio de Janeiro','RN':'Rio Grande do Norte','RO':'Rondônia','RR':'Roraima','RS':'Rio Grande do Sul','SC':'Santa Catarina','SE':'Sergipe','SP':'São Paulo','TO':'Tocantins'};
-
-let UF_CIDADES_CACHE = null;
-async function carregarCidades() {
-  if (UF_CIDADES_CACHE) return UF_CIDADES_CACHE;
-  try {
-    const resp = await fetch('/api/cidades');
-    UF_CIDADES_CACHE = await resp.json();
-  } catch(e) {
-    UF_CIDADES_CACHE = {};
-  }
-  return UF_CIDADES_CACHE;
-}
-
-let _ufsAtuais = [];
-let _ufHighlight = -1;
-
-function popularUfSelect() {
-  const input = document.getElementById('mc-uf');
-  const val = document.getElementById('mc-uf-val');
-  if (!input) return;
-  const atual = val.value;
-  input.value = '';
-  input.placeholder = 'Pesquisar ou selecionar...';
-  val.value = '';
-  _ufsAtuais = UFS_BRASIL.map(uf => uf + ' - ' + UF_NOMES[uf]);
-  fecharDropdownUf();
-  if (atual && UFS_BRASIL.includes(atual)) {
-    input.value = atual + ' - ' + UF_NOMES[atual];
-    val.value = atual;
-  }
-}
-
-function onUfInput() {
-  const input = document.getElementById('mc-uf');
-  const val = document.getElementById('mc-uf-val');
-  const termo = input.value.trim().toLowerCase();
-  val.value = '';
-  popularCidadesSelect();
-  _ufHighlight = -1;
-  if (!termo) { fecharDropdownUf(); return; }
-  const filtradas = _ufsAtuais.filter(u => u.toLowerCase().includes(termo));
-  mostrarDropdownUf(filtradas);
-}
-
-function onUfFocus() {
-  const input = document.getElementById('mc-uf');
-  const termo = input.value.trim().toLowerCase();
-  const filtradas = termo ? _ufsAtuais.filter(u => u.toLowerCase().includes(termo)) : _ufsAtuais;
-  mostrarDropdownUf(filtradas);
-}
-
-function mostrarDropdownUf(lista) {
-  const dd = document.getElementById('mc-uf-dropdown');
-  if (!dd) return;
-  dd.innerHTML = '';
-  _ufHighlight = -1;
-  if (!lista.length) { dd.innerHTML = '<div class="cidade-dropdown-empty">Nenhuma UF encontrada</div>'; dd.classList.add('open'); return; }
-  lista.forEach((u, i) => {
-    const div = document.createElement('div');
-    div.className = 'cidade-dropdown-item';
-    div.textContent = u;
-    div.dataset.uf = u.split(' - ')[0];
-    div.dataset.idx = i;
-    div.addEventListener('mousedown', (e) => { e.preventDefault(); selecionarUf(u); });
-    div.addEventListener('mouseenter', () => { _ufHighlight = i; atualizarHighlightUf(); });
-    dd.appendChild(div);
-  });
-  dd.classList.add('open');
-}
-
-function fecharDropdownUf() {
-  const dd = document.getElementById('mc-uf-dropdown');
-  if (dd) { dd.classList.remove('open'); dd.innerHTML = ''; }
-  _ufHighlight = -1;
-}
-
-function selecionarUf(ufTexto) {
-  const input = document.getElementById('mc-uf');
-  const val = document.getElementById('mc-uf-val');
-  const ufSigla = ufTexto.split(' - ')[0];
-  input.value = ufTexto;
-  val.value = ufSigla;
-  fecharDropdownUf();
-  popularCidadesSelect();
-}
-
-function atualizarHighlightUf() {
-  const dd = document.getElementById('mc-uf-dropdown');
-  if (!dd) return;
-  dd.querySelectorAll('.cidade-dropdown-item').forEach((el, i) => {
-    el.classList.toggle('highlighted', i === _ufHighlight);
-  });
-  const hl = dd.querySelector('.highlighted');
-  if (hl) hl.scrollIntoView({ block: 'nearest' });
-}
-
-function onUfKeydown(e) {
-  const dd = document.getElementById('mc-uf-dropdown');
-  if (!dd || !dd.classList.contains('open')) return;
-  const items = dd.querySelectorAll('.cidade-dropdown-item');
-  if (!items.length) return;
-  if (e.key === 'ArrowDown') { e.preventDefault(); _ufHighlight = Math.min(_ufHighlight + 1, items.length - 1); atualizarHighlightUf(); }
-  else if (e.key === 'ArrowUp') { e.preventDefault(); _ufHighlight = Math.max(_ufHighlight - 1, 0); atualizarHighlightUf(); }
-  else if (e.key === 'Enter' && _ufHighlight >= 0) { e.preventDefault(); selecionarUf(items[_ufHighlight].textContent); }
-  else if (e.key === 'Escape') { fecharDropdownUf(); }
-}
-
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('#mc-uf') && !e.target.closest('#mc-uf-dropdown')) fecharDropdownUf();
-});
-
-let _cidadesAtuais = [];
-let _cidadeHighlight = -1;
-
-async function popularCidadesSelect() {
-  const input = document.getElementById('mc-cidade');
-  const val = document.getElementById('mc-cidade-val');
-  const dd = document.getElementById('mc-cidade-dropdown');
-  if (!input) return;
-  const uf = document.getElementById('mc-uf-val')?.value || '';
-  if (!uf) { input.value = ''; input.placeholder = 'Selecione a UF primeiro...'; val.value = ''; _cidadesAtuais = []; fecharDropdownCidade(); return; }
-  const dados = await carregarCidades();
-  const cidades = (dados[uf] || []).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'));
-  _cidadesAtuais = cidades;
-  const atual = val.value;
-  input.value = '';
-  input.placeholder = 'Pesquisar ou selecionar...';
-  val.value = '';
-  fecharDropdownCidade();
-  if (atual && cidades.includes(atual)) {
-    input.value = atual;
-    val.value = atual;
-  }
-}
-
-function limparBuscaCidade() {
-  const input = document.getElementById('mc-cidade');
-  const val = document.getElementById('mc-cidade-val');
-  if (input) { input.value = ''; input.placeholder = 'Selecione a UF primeiro...'; }
-  if (val) val.value = '';
-  fecharDropdownCidade();
-}
-
-function onCidadeInput() {
-  const input = document.getElementById('mc-cidade');
-  const val = document.getElementById('mc-cidade-val');
-  const termo = input.value.trim().toLowerCase();
-  val.value = '';
-  _cidadeHighlight = -1;
-  if (!termo || !_cidadesAtuais.length) { fecharDropdownCidade(); return; }
-  const filtradas = _cidadesAtuais.filter(c => c.toLowerCase().includes(termo));
-  mostrarDropdownCidade(filtradas);
-}
-
-function onCidadeFocus() {
-  const input = document.getElementById('mc-cidade');
-  const termo = input.value.trim().toLowerCase();
-  if (_cidadesAtuais.length) {
-    const filtradas = termo ? _cidadesAtuais.filter(c => c.toLowerCase().includes(termo)) : _cidadesAtuais;
-    mostrarDropdownCidade(filtradas);
-  }
-}
-
-function mostrarDropdownCidade(lista) {
-  const dd = document.getElementById('mc-cidade-dropdown');
-  if (!dd) return;
-  dd.innerHTML = '';
-  _cidadeHighlight = -1;
-  if (!lista.length) { dd.innerHTML = '<div class="cidade-dropdown-empty">Nenhuma cidade encontrada</div>'; dd.classList.add('open'); return; }
-  lista.forEach((c, i) => {
-    const div = document.createElement('div');
-    div.className = 'cidade-dropdown-item';
-    div.textContent = c;
-    div.dataset.cidade = c;
-    div.dataset.idx = i;
-    div.addEventListener('mousedown', (e) => { e.preventDefault(); selecionarCidade(c); });
-    div.addEventListener('mouseenter', () => { _cidadeHighlight = i; atualizarHighlightCidade(); });
-    dd.appendChild(div);
-  });
-  dd.classList.add('open');
-}
-
-function fecharDropdownCidade() {
-  const dd = document.getElementById('mc-cidade-dropdown');
-  if (dd) { dd.classList.remove('open'); dd.innerHTML = ''; }
-  _cidadeHighlight = -1;
-}
-
-function selecionarCidade(cidade) {
-  const input = document.getElementById('mc-cidade');
-  const val = document.getElementById('mc-cidade-val');
-  input.value = cidade;
-  val.value = cidade;
-  fecharDropdownCidade();
-}
-
-function atualizarHighlightCidade() {
-  const dd = document.getElementById('mc-cidade-dropdown');
-  if (!dd) return;
-  dd.querySelectorAll('.cidade-dropdown-item').forEach((el, i) => {
-    el.classList.toggle('highlighted', i === _cidadeHighlight);
-  });
-  const hl = dd.querySelector('.highlighted');
-  if (hl) hl.scrollIntoView({ block: 'nearest' });
-}
-
-function onCidadeKeydown(e) {
-  const dd = document.getElementById('mc-cidade-dropdown');
-  if (!dd || !dd.classList.contains('open')) return;
-  const items = dd.querySelectorAll('.cidade-dropdown-item');
-  if (!items.length) return;
-  if (e.key === 'ArrowDown') { e.preventDefault(); _cidadeHighlight = Math.min(_cidadeHighlight + 1, items.length - 1); atualizarHighlightCidade(); }
-  else if (e.key === 'ArrowUp') { e.preventDefault(); _cidadeHighlight = Math.max(_cidadeHighlight - 1, 0); atualizarHighlightCidade(); }
-  else if (e.key === 'Enter' && _cidadeHighlight >= 0) { e.preventDefault(); selecionarCidade(items[_cidadeHighlight].dataset.cidade); }
-  else if (e.key === 'Escape') { fecharDropdownCidade(); }
-}
-
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('#mc-cidade') && !e.target.closest('#mc-cidade-dropdown')) fecharDropdownCidade();
-});
-
-function popularFiltroUfCertidoes() {
-  const sel = document.getElementById('filtro-ct-uf');
-  if (!sel) return;
-  const atual = sel.value;
-  sel.innerHTML = '<option value="">Todas</option>';
-  UFS_BRASIL.forEach(uf => {
-    const opt = document.createElement('option');
-    opt.value = uf; opt.textContent = uf;
-    sel.appendChild(opt);
-  });
-  if (atual) sel.value = atual;
-}
-
-function calcStatusCertidao(cert) {
-  if (cert.status === 'pendente') return 'pendente';
-  if (!cert.dataValidade) return cert.status || 'pendente';
-  const hj = new Date(); hj.setHours(0,0,0,0);
-  const val = new Date(cert.dataValidade); val.setHours(0,0,0,0);
-  if (val < hj) return 'vencida';
-  const diff = Math.floor((val - hj) / 86400000);
-  if (diff <= 30) return 'vencendo';
-  return 'valida';
-}
-
-function renderCertidoes(page) {
-  if (page !== undefined) certCurrentPage = page;
-  const tb = document.getElementById('tb-certidoes');
-  if (!tb) return;
-  const empresaFilter = document.getElementById('filtro-ct-empresa')?.value || '';
-  const ufFilter = document.getElementById('filtro-ct-uf')?.value || '';
-  const tipoFilter = document.getElementById('filtro-ct-tipo')?.value || '';
-  const statusFilter = document.getElementById('filtro-ct-status')?.value || '';
-
-  let lista = getCertidoes();
-  if (empresaFilter) lista = lista.filter(c => c.empresaId === empresaFilter);
-  if (ufFilter) lista = lista.filter(c => c.uf === ufFilter);
-  if (tipoFilter) lista = lista.filter(c => c.tipo === tipoFilter);
-  if (statusFilter) lista = lista.filter(c => calcStatusCertidao(c) === statusFilter);
-
-  const total = lista.length;
-  const perPage = pageSizes['cert-pagination'] || PAGE_SIZE;
-  const start = (certCurrentPage - 1) * perPage;
-  const paginated = lista.slice(start, start + perPage);
-
-  renderPagination(total, certCurrentPage, 'cert-pagination', 'renderCertidoes');
-
-  if (!paginated.length) {
-    tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#aaa;padding:32px">Nenhuma certidão cadastrada.</td></tr>';
-    return;
-  }
-
-  tb.innerHTML = paginated.map(c => {
-    const emp = getEmpresas().find(e => e.id === c.empresaId);
-    const st = calcStatusCertidao(c);
-    const stLabel = { valida: 'Válida', vencida: 'Vencida', vencendo: 'Vencendo', pendente: 'Pendente' }[st];
-    const stClass = { valida: 'badge-valida', vencida: 'badge-vencido', vencendo: 'badge-pendente', pendente: 'badge-pendente' }[st];
-    const arq = c.arquivo;
-    const hasFile = arq && typeof arq === 'object' && !Array.isArray(arq) && arq.data;
-    const arqBtn = hasFile ? `<button class="btn btn-sm btn-primary" onclick="previewCertidaoArquivo('${c.id}')" style="padding:2px 8px;font-size:0.75rem;">Ver</button><span style="font-size:0.7rem;color:#888;margin-left:4px;">${c.updated_at ? fmtData(c.updated_at.slice(0,10)) : ''}</span>` : (arq ? `<span style="font-size:0.7rem;color:#c00;" title="Arquivo corrompido ou sem dados">⚠ Anexo</span>` : '—');
-    return `<tr>
-      <td>${escapeHtml(emp?.nome || '—')}</td>
-      <td>${c.cnpj || '—'}</td>
-      <td>${c.uf || '—'}</td>
-      <td>${c.cidade || '—'}</td>
-      <td>${escapeHtml(c.tipo)}</td>
-      <td>${c.dataEmissao ? fmtData(c.dataEmissao) : '—'}</td>
-      <td>${c.dataValidade ? fmtData(c.dataValidade) : '—'}</td>
-      <td><span class="badge ${stClass}">${stLabel}</span></td>
-      <td>${arqBtn}</td>
-      <td style="display:flex;gap:4px;">
-        <button class="btn btn-sm btn-primary" onclick="editarCertidao('${c.id}')" style="padding:2px 8px;font-size:0.75rem;">Editar</button>
-        <button class="btn btn-sm btn-danger" onclick="excluirCertidao('${c.id}')" style="padding:2px 8px;font-size:0.75rem;">Excluir</button>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-function arquivoData(obj) {
-  if (!obj || !obj.data) return '';
-  return obj.data.replace(/'/g, "\\'");
-}
-
-window.previewCertidaoArquivo = function(id) {
-  try {
-    const c = getCertidoes().find(x => x.id === id);
-    if (!c) { mostrarToast('Certidao nao encontrada.', 'erro'); return; }
-    const arq = c.arquivo;
-    console.log('[CERT-ARQ] id:', id, 'arquivo type:', typeof arq, 'arquivo:', arq ? { name: arq.name, dataLen: arq.data?.length, dataStart: (arq.data || '').slice(0, 40) } : null);
-    if (arq && typeof arq === 'object' && !Array.isArray(arq) && arq.data) {
-      const name = arq.name || 'arquivo';
-      previewAnexo(arq.data, name);
-    } else if (arq && typeof arq === 'string') {
-      console.warn('[CERT-ARQ] arquivo is a string instead of object:', arq.slice(0, 100));
-      try {
-        const parsed = JSON.parse(arq);
-        if (parsed && parsed.data) { previewAnexo(parsed.data, parsed.name || 'arquivo'); return; }
-      } catch(e) {}
-      mostrarToast('Arquivo corrompido (formato invalido). Tente reenviar o anexo.', 'erro');
-    } else if (arq && arq.name && !arq.data) {
-      mostrarToast('Arquivo "' + arq.name + '" encontrado mas sem dados. O arquivo pode nao ter sido salvo corretamente.', 'erro');
-    } else {
-      mostrarToast('Nenhum arquivo anexado a esta certidao.', 'erro');
-    }
-  } catch(e) {
-    console.error('[CERT-ARQ] Erro ao abrir arquivo:', e);
-    mostrarToast('Erro ao abrir arquivo: ' + e.message, 'erro');
-  }
-}
-
-function popularFiltroEmpresaCertidoes() {
-  const sel = document.getElementById('filtro-ct-empresa');
-  if (!sel) return;
-  const atual = sel.value;
-  sel.innerHTML = '<option value="">Todas</option>';
-  getEmpresas().filter(e => e.active !== 0).forEach(e => {
-    const opt = document.createElement('option');
-    opt.value = e.id; opt.textContent = e.nome;
-    sel.appendChild(opt);
-  });
-  if (atual) sel.value = atual;
-}
-
-function popularFiltroTipoCertidoes() {
-  const sel = document.getElementById('filtro-ct-tipo');
-  if (!sel) return;
-  const atual = sel.value;
-  sel.innerHTML = '<option value="">Todos</option>';
-  TIPOS_CERTIDAO.forEach(t => {
-    const opt = document.createElement('option');
-    opt.value = t; opt.textContent = t;
-    sel.appendChild(opt);
-  });
-  if (atual) sel.value = atual;
-}
-
-function popularModalCertidaoEmpresa() {
-  const sel = document.getElementById('mc-empresa');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">Selecione...</option>';
-  getEmpresas().filter(e => e.active !== 0).forEach(e => {
-    const opt = document.createElement('option');
-    opt.value = e.id; opt.textContent = e.nome;
-    sel.appendChild(opt);
-  });
-}
-
-function popularModalCertidaoTipo() {
-  const sel = document.getElementById('mc-tipo');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">Selecione...</option>';
-  TIPOS_CERTIDAO.forEach(t => {
-    const opt = document.createElement('option');
-    opt.value = t; opt.textContent = t;
-    sel.appendChild(opt);
-  });
-}
-
-const CERTIDOES_FEDERAIS = ['Cartão CNPJ Ativo (Receita Federal)', 'CND Federal'];
-function onTipoCertidaoChange() {
-  const tipo = document.getElementById('mc-tipo').value;
-  const isFederal = CERTIDOES_FEDERAIS.includes(tipo);
-  const cidGroup = document.getElementById('mc-cidade-group');
-  const cidInput = document.getElementById('mc-cidade');
-  const cidVal = document.getElementById('mc-cidade-val');
-  const cidDd = document.getElementById('mc-cidade-dropdown');
-  if (isFederal) {
-    cidInput.value = '';
-    cidVal.value = '';
-    cidInput.disabled = true;
-    cidInput.placeholder = 'Não se aplica para certidão federal';
-    cidGroup.style.opacity = '0.5';
-    if (cidDd) cidDd.innerHTML = '';
-  } else {
-    cidInput.disabled = false;
-    cidInput.placeholder = 'Selecione a UF primeiro...';
-    cidGroup.style.opacity = '1';
-  }
-}
-
-async function abrirModalCertidao(cert) {
-  document.getElementById('mc-id').value = cert ? cert.id : '';
-  document.getElementById('mc-empresa').value = cert ? cert.empresaId : '';
-  document.getElementById('mc-cnpj').value = cert ? (cert.cnpj || '') : '';
-  document.getElementById('mc-obs').value = cert ? (cert.obs || '') : '';
-  document.getElementById('mc-arquivo').value = '';
-  document.getElementById('modal-certidao-title').textContent = cert ? 'Editar Certidão' : 'Nova Certidão';
-  popularModalCertidaoEmpresa();
-  popularModalCertidaoTipo();
-  popularUfSelect();
-  limparBuscaCidade();
-  if (cert && cert.uf) {
-    document.getElementById('mc-uf').value = cert.uf + ' - ' + (UF_NOMES[cert.uf] || cert.uf);
-    document.getElementById('mc-uf-val').value = cert.uf;
-    await popularCidadesSelect();
-    if (cert.cidade) {
-      document.getElementById('mc-cidade').value = cert.cidade;
-      document.getElementById('mc-cidade-val').value = cert.cidade;
-    }
-  } else {
-    _cidadesAtuais = [];
-    const input = document.getElementById('mc-cidade');
-    input.value = '';
-    input.placeholder = 'Selecione a UF primeiro...';
-    document.getElementById('mc-cidade-val').value = '';
-  }
-  document.getElementById('mc-tipo').value = cert ? cert.tipo : '';
-  onTipoCertidaoChange();
-  document.getElementById('mc-emissao').value = cert ? (cert.dataEmissao || '') : '';
-  document.getElementById('mc-validade').value = cert ? (cert.dataValidade || '') : '';
-  document.getElementById('mc-status').value = cert ? (cert.status || 'pendente') : 'pendente';
-  abrirModal('modal-certidao');
-}
-
-function editarCertidao(id) {
-  const cert = getCertidoes().find(c => c.id === id);
-  if (cert) abrirModalCertidao(cert);
-}
-
-async function salvarCertidao() {
-  const empresaId = document.getElementById('mc-empresa').value;
-  const tipo = document.getElementById('mc-tipo').value;
-  const cnpj = document.getElementById('mc-cnpj').value.trim();
-  if (!empresaId || !tipo || !cnpj) {
-    mostrarToast('Preencha todos os campos obrigatorios (*): Empresa, Tipo e CNPJ.', 'erro'); return;
-  }
-  const cnpjNumeros = cnpj.replace(/\D/g, '');
-  if (cnpjNumeros.length !== 14 && cnpjNumeros.length !== 11) {
-    mostrarToast('CNPJ/CPF invalido. Informe um CNPJ com 14 digitos ou CPF com 11 digitos.', 'erro'); return;
-  }
-  const uf = document.getElementById('mc-uf-val').value;
-  const cidade = document.getElementById('mc-cidade-val').value;
-  const dataEmissao = document.getElementById('mc-emissao').value;
-  const dataValidade = document.getElementById('mc-validade').value;
-  const status = document.getElementById('mc-status').value;
-  const obs = document.getElementById('mc-obs').value;
-  const arquivoInput = document.getElementById('mc-arquivo');
-
-  let arquivo = null;
-  if (arquivoInput.files && arquivoInput.files[0]) {
-    arquivo = await fileToBase64(arquivoInput.files[0]);
-  }
-
-  const editId = document.getElementById('mc-id').value;
-  const certidoes = getCertidoes();
-  const snapshot = JSON.parse(JSON.stringify(certidoes));
-
-  let certObj;
-  if (editId) {
-    const idx = certidoes.findIndex(c => c.id === editId);
-    if (idx === -1) return;
-    certObj = { ...certidoes[idx], empresaId, cnpj, uf, cidade, tipo, dataEmissao, dataValidade, status, obs, updated_at: now() };
-    if (arquivo) certObj.arquivo = arquivo;
-  } else {
-    certObj = {
-      id: uid(), empresaId, cnpj, uf, cidade, tipo, dataEmissao, dataValidade,
-      status, arquivo, obs, criadoEm: now(), updated_at: now()
-    };
-  }
-
-  const payload = {
-    id: certObj.id, empresa_id: certObj.empresaId || '',
-    cnpj: certObj.cnpj || '', uf: certObj.uf || '', cidade: certObj.cidade || '',
-    tipo: certObj.tipo || '', data_emissao: certObj.dataEmissao || '',
-    data_validade: certObj.dataValidade || '', status: certObj.status || 'pendente',
-    arquivo_nome: certObj.arquivo?.name || '', arquivo_dados: certObj.arquivo ? JSON.stringify(certObj.arquivo) : '',
-    obs: certObj.obs || ''
-  };
-  const method = editId ? 'PUT' : 'POST';
-  const path = editId ? 'certidoes/' + editId : 'certidoes';
-  try {
-    const r = await apiCall(method, path, payload);
-    if (!r || !r.ok) throw new Error(r?.erro || 'Erro ao salvar certidao');
-    if (editId) {
-      const idx = certidoes.findIndex(c => c.id === editId);
-      if (idx !== -1) certidoes[idx] = { ...certidoes[idx], ...certObj };
-    } else {
-      certidoes.push(certObj);
-    }
-    saveCertidoes(certidoes);
-    renderCertidoes();
-    fecharModal('modal-certidao');
-    mostrarToast('Certidao salva com sucesso!', 'sucesso');
-  } catch (e) {
-    saveCertidoes(snapshot);
-    renderCertidoes();
-    mostrarToast('Erro ao salvar certidao: ' + e.message, 'erro');
-  }
-}
-
-async function excluirCertidao(id) {
-  if (!confirm('Excluir esta certidao?')) return;
-  const ts = now();
-  try {
-    const r = await apiCall('PUT', 'certidoes/' + id, { deleted_at: ts, updated_at: ts });
-    if (!r || !r.ok) throw new Error(r?.erro || 'Erro ao excluir certidao');
-    const certidoes = getCertidoes();
-    const idx = certidoes.findIndex(c => c.id === id);
-    if (idx !== -1) { certidoes[idx].deleted_at = ts; certidoes[idx].updated_at = ts; }
-    saveCertidoes(certidoes);
-    renderCertidoes();
-    mostrarToast('Certidao excluida com sucesso!', 'sucesso');
-  } catch (e) {
-    mostrarToast('Erro ao excluir certidao: ' + e.message, 'erro');
-  }
-}
-
-// ===================== LICITACOES =====================
-function calcStatusLicitacao(lc) {
-  const s = lc.status || 'em_andamento';
-  const map = { em_andamento: 'Em andamento', inativo: 'Inativo' };
-  return map[s] || s;
-}
-
-function renderLicitacoes(page) {
-  if (page !== undefined) lcCurrentPage = page;
-  const tb = document.getElementById('tb-licitacoes');
-  if (!tb) return;
-  const empresaFilter = document.getElementById('filtro-lc-empresa')?.value || '';
-  const statusFilter = document.getElementById('filtro-lc-status')?.value || '';
-  const numeroFilter = (document.getElementById('filtro-lc-numero')?.value || '').toLowerCase();
-
-  let lista = getLicitacoes();
-  if (empresaFilter) lista = lista.filter(l => l.empresaId === empresaFilter);
-  if (statusFilter) lista = lista.filter(l => l.status === statusFilter);
-  if (numeroFilter) lista = lista.filter(l => (l.numeroLicitacao || '').toLowerCase().includes(numeroFilter));
-
-  const total = lista.length;
-  const perPage = pageSizes['lc-pagination'] || PAGE_SIZE;
-  const start = (lcCurrentPage - 1) * perPage;
-  const paginated = lista.slice(start, start + perPage);
-
-  renderPagination(total, lcCurrentPage, 'lc-pagination', 'renderLicitacoes');
-
-  if (!paginated.length) {
-    tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#aaa;padding:32px">Nenhuma licitação cadastrada.</td></tr>';
-    return;
-  }
-
-  tb.innerHTML = paginated.map(l => {
-    const emp = getEmpresas().find(e => e.id === l.empresaId);
-    const st = l.status || 'em_andamento';
-    const stLabel = calcStatusLicitacao(l);
-    const stClass = { em_andamento: 'badge-andamento', inativo: 'badge-inativo' }[st] || 'badge-andamento';
-    const vigencia = (l.dataInicio && l.dataFim) ? `${fmtData(l.dataInicio)} a ${fmtData(l.dataFim)}` : '—';
-    const arquivos = l.arquivos || [];
-    const arqBtns = arquivos.map((a, i) => `<button class="btn btn-sm btn-primary" onclick="previewAnexo('${a.data || ''}','${escapeHtml(a.name || 'arquivo')}')" style="padding:2px 8px;font-size:0.75rem;">${escapeHtml(a.tipo || a.name?.slice(0,15) || 'arq')}</button>`).join(' ') || '—';
-    const cnpj = l.cnpj || '—';
-    const nomeLic = l.nomeLicitacao || '—';
-    const isAdm = (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin');
-    const isInativo = st === 'inativo';
-    return `<tr>
-      <td>${escapeHtml(l.numeroLicitacao)}</td>
-      <td>${escapeHtml(nomeLic)}</td>
-      <td>${escapeHtml(cnpj)}</td>
-      <td>${escapeHtml(emp?.nome || '—')}</td>
-      <td>${escapeHtml(l.objeto)}</td>
-      <td>R$ ${fmtMoeda(l.valor || 0)}</td>
-      <td>${vigencia}</td>
-      <td><span class="badge ${stClass}">${stLabel}</span></td>
-      <td>${arqBtns}</td>
-      <td style="display:flex;gap:4px;flex-wrap:nowrap;white-space:nowrap">
-        <button class="btn btn-sm btn-primary" onclick="abrirDetalheLicitacao('${l.id}')" style="padding:2px 8px;font-size:0.75rem;">Ver</button>
-        <button class="btn btn-sm btn-warning" onclick="editarLicitacao('${l.id}')" style="padding:2px 8px;font-size:0.75rem;">Editar</button>
-        <button class="btn btn-sm ${isInativo ? 'btn-secondary' : 'btn-warning'}" onclick="inativarLicitacao('${l.id}')" style="padding:2px 8px;font-size:0.75rem;">${isInativo ? 'Ativar' : 'Inat'}</button>
-        ${isAdm ? `<button class="btn btn-sm btn-danger" onclick="excluirLicitacao('${l.id}')" style="padding:2px 8px;font-size:0.75rem;">Exc</button>` : ''}
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-function popularFiltroEmpresaLicitacoes() {
-  const sel = document.getElementById('filtro-lc-empresa');
-  if (!sel) return;
-  const atual = sel.value;
-  sel.innerHTML = '<option value="">Todas</option>';
-  getEmpresas().filter(e => e.active !== 0).forEach(e => {
-    const opt = document.createElement('option');
-    opt.value = e.id; opt.textContent = e.nome;
-    sel.appendChild(opt);
-  });
-  if (atual) sel.value = atual;
-}
-
-function popularModalLicitacaoEmpresa() {
-  const sel = document.getElementById('ml-empresa');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">Selecione...</option>';
-  getEmpresas().filter(e => e.active !== 0).forEach(e => {
-    const opt = document.createElement('option');
-    opt.value = e.id; opt.textContent = e.nome;
-    sel.appendChild(opt);
-  });
-}
-
-function abrirModalLicitacao(lc) {
-  document.getElementById('ml-id').value = lc ? lc.id : '';
-  document.getElementById('ml-numero').value = lc ? (lc.numeroLicitacao || '') : '';
-  document.getElementById('ml-nome').value = lc ? (lc.nomeLicitacao || '') : '';
-  document.getElementById('ml-cnpj').value = lc ? (lc.cnpj || '') : '';
-  document.getElementById('ml-edital').value = lc ? (lc.edital || '') : '';
-  document.getElementById('ml-objeto').value = lc ? (lc.objeto || '') : '';
-  document.getElementById('ml-valor').value = lc ? (lc.valor || '') : '';
-  document.getElementById('ml-homologacao').value = lc ? (lc.dataHomologacao || '') : '';
-  document.getElementById('ml-inicio').value = lc ? (lc.dataInicio || '') : '';
-  document.getElementById('ml-fim').value = lc ? (lc.dataFim || '') : '';
-  document.getElementById('ml-status').value = lc ? (lc.status || 'em_andamento') : 'em_andamento';
-  document.getElementById('ml-obs').value = lc ? (lc.obs || '') : '';
-  document.getElementById('ml-novo-arquivo').value = '';
-  document.getElementById('modal-licitacao-title').textContent = lc ? 'Editar Licitação' : 'Nova Licitação';
-  popularModalLicitacaoEmpresa();
-  setTimeout(() => {
-    document.getElementById('ml-empresa').value = lc ? (lc.empresaId || '') : '';
-  }, 50);
-  renderArquivosLicitacao(lc ? (lc.arquivos || []) : []);
-  if (lc && lc.id) { carregarAditivosLicitacao(lc.id); } else { document.getElementById('ml-aditivos-lista').innerHTML = '<p style="color:#aaa;font-size:0.85rem;">Nenhum aditivo registrado.</p>'; }
-
-  const resumoBox = document.getElementById('ml-resumo-box');
-  if (resumoBox) {
-    if (lc && lc.resumo) {
-      resumoBox.innerHTML = `<h4 style="margin:12px 0 4px;color:#1a3c5e;">Resumo da Licitação</h4>
-        <p style="font-size:0.9rem;line-height:1.5;white-space:pre-wrap;">${escapeHtml(lc.resumo)}</p>
-        <button class="btn btn-sm btn-primary" onclick="gerarResumo('licitacao','${lc.id}')" style="margin-top:8px;">📄 Regenerar Resumo com IA</button>`;
-    } else if (lc && lc.id) {
-      resumoBox.innerHTML = `<button class="btn btn-sm btn-primary" onclick="gerarResumo('licitacao','${lc.id}')" style="margin-top:8px;">📄 Gerar Resumo com IA</button>`;
-    } else {
-      resumoBox.innerHTML = '';
-    }
-  }
-
-  abrirModal('modal-licitacao');
-}
-
-function editarLicitacao(id) {
-  const lc = getLicitacoes().find(l => l.id === id);
-  if (lc) abrirModalLicitacao(lc);
-}
-
-async function salvarLicitacao() {
-  const numero = document.getElementById('ml-numero').value.trim();
-  const objeto = document.getElementById('ml-objeto').value.trim();
-  const cnpj = document.getElementById('ml-cnpj').value.trim();
-  if (!numero || !objeto || !cnpj) {
-    mostrarToast('Preencha todos os campos obrigatorios (*): No Licitacao, Objeto e CNPJ.', 'erro'); return;
-  }
-  const cnpjNumeros = cnpj.replace(/\D/g, '');
-  if (cnpjNumeros.length !== 14 && cnpjNumeros.length !== 11) {
-    mostrarToast('CNPJ/CPF invalido. Informe um CNPJ com 14 digitos ou CPF com 11 digitos.', 'erro'); return;
-  }
-  const nomeLicitacao = document.getElementById('ml-nome').value.trim();
-  const edital = document.getElementById('ml-edital').value;
-  const empresaId = document.getElementById('ml-empresa').value || null;
-  const valor = parseFloat(document.getElementById('ml-valor').value) || 0;
-  const dataHomologacao = document.getElementById('ml-homologacao').value;
-  const dataInicio = document.getElementById('ml-inicio').value;
-  const dataFim = document.getElementById('ml-fim').value;
-  const status = document.getElementById('ml-status').value;
-  const obs = document.getElementById('ml-obs').value;
-
-  const editId = document.getElementById('ml-id').value;
-  const licitacoes = getLicitacoes();
-  const snapshot = JSON.parse(JSON.stringify(licitacoes));
-
-  let lcObj;
-  if (editId) {
-    const idx = licitacoes.findIndex(l => l.id === editId);
-    if (idx === -1) return;
-    lcObj = { ...licitacoes[idx], numeroLicitacao: numero, nomeLicitacao, cnpj, edital, objeto, empresaId, valor, dataHomologacao, dataInicio, dataFim, status, obs, updated_at: now() };
-  } else {
-    lcObj = {
-      id: uid(), numeroLicitacao: numero, nomeLicitacao, cnpj, edital, objeto,
-      empresaId, valor, dataHomologacao, dataInicio, dataFim, status, arquivos: [], resumo: null,
-      obs, criadoEm: now(), updated_at: now()
-    };
-  }
-
-  const payload = {
-    id: lcObj.id, numero_licitacao: lcObj.numeroLicitacao || '', edital: lcObj.edital || '',
-    objeto: lcObj.objeto || '', empresa_id: lcObj.empresaId || '',
-    valor: lcObj.valor || 0,
-    data_homologacao: lcObj.dataHomologacao || '', data_inicio: lcObj.dataInicio || '',
-    data_fim: lcObj.dataFim || '', status: lcObj.status || 'em_andamento',
-    arquivos: JSON.stringify(lcObj.arquivos || []), obs: lcObj.obs || '',
-    nome_licitacao: lcObj.nomeLicitacao || '', cnpj: lcObj.cnpj || ''
-  };
-  const method = editId ? 'PUT' : 'POST';
-  const path = editId ? 'licitacoes/' + editId : 'licitacoes';
-  try {
-    const r = await apiCall(method, path, payload);
-    if (!r || !r.ok) throw new Error(r?.erro || 'Erro ao salvar licitacao');
-    if (editId) {
-      const idx = licitacoes.findIndex(l => l.id === editId);
-      if (idx !== -1) licitacoes[idx] = { ...licitacoes[idx], ...lcObj };
-    } else {
-      licitacoes.push(lcObj);
-    }
-    saveLicitacoes(licitacoes);
-    renderLicitacoes();
-    fecharModal('modal-licitacao');
-    mostrarToast('Licitacao salva com sucesso!', 'sucesso');
-  } catch (e) {
-    saveLicitacoes(snapshot);
-    renderLicitacoes();
-    mostrarToast('Erro ao salvar licitacao: ' + e.message, 'erro');
-  }
-}
-
-async function excluirLicitacao(id) {
-  if (typeof currentUser === 'undefined' || !currentUser || currentUser.role !== 'admin') {
-    mostrarToast('Apenas o administrador pode excluir licitacoes.', 'erro'); return;
-  }
-  if (!confirm('Excluir esta licitacao?')) return;
-  const ts = now();
-  try {
-    const r = await apiCall('PUT', 'licitacoes/' + id, { deleted_at: ts, updated_at: ts });
-    if (!r || !r.ok) throw new Error(r?.erro || 'Erro ao excluir licitacao');
-    const licitacoes = getLicitacoes();
-    const idx = licitacoes.findIndex(l => l.id === id);
-    if (idx !== -1) { licitacoes[idx].deleted_at = ts; licitacoes[idx].updated_at = ts; }
-    saveLicitacoes(licitacoes);
-    renderLicitacoes();
-    mostrarToast('Licitacao excluida com sucesso!', 'sucesso');
-  } catch (e) {
-    mostrarToast('Erro ao excluir licitacao: ' + e.message, 'erro');
-  }
-}
-
-async function inativarLicitacao(id) {
-  const licitacoes = getLicitacoes();
-  const l = licitacoes.find(x => x.id === id);
-  if (!l) return;
-  const newStatus = (l.status === 'em_andamento') ? 'inativo' : 'em_andamento';
-  const ts = now();
-  try {
-    const r = await apiCall('PUT', 'licitacoes/' + id, { status: newStatus, updated_at: ts });
-    if (!r || !r.ok) throw new Error(r?.erro || 'Erro ao atualizar licitacao');
-    l.status = newStatus;
-    l.updated_at = ts;
-    saveLicitacoes(licitacoes);
-    renderLicitacoes();
-    renderDashboard();
-    mostrarToast(`Licitacao ${newStatus === 'em_andamento' ? 'reativada' : 'concluida'} com sucesso.`, 'sucesso');
-  } catch (e) {
-    mostrarToast('Erro ao atualizar licitacao: ' + e.message, 'erro');
-  }
-}
-
-function abrirDetalheLicitacao(id) {
-  const l = getLicitacoes().find(x => x.id === id);
-  if (!l) return;
-  const emp = getEmpresas().find(e => e.id === l.empresaId);
-  const st = l.status || 'em_andamento';
-  const stLabel = calcStatusLicitacao(l);
-  const stClass = { em_andamento: 'badge-andamento', inativo: 'badge-inativo' }[st] || 'badge-andamento';
-  const vigencia = (l.dataInicio && l.dataFim) ? `${fmtData(l.dataInicio)} a ${fmtData(l.dataFim)}` : '—';
-
-  let html = `
-    <div class="form-grid" style="margin-bottom:16px;">
-      <div><label>Nº Licitação</label><p><strong>${escapeHtml(l.numeroLicitacao)}</strong></p></div>
-      <div><label>Nome</label><p>${escapeHtml(l.nomeLicitacao || '—')}</p></div>
-      <div><label>CNPJ</label><p>${escapeHtml(l.cnpj || '—')}</p></div>
-      <div><label>Empresa</label><p>${escapeHtml(emp?.nome || '—')}</p></div>
-      <div class="full"><label>Objeto</label><p>${escapeHtml(l.objeto)}</p></div>
-      <div><label>Valor do Contrato</label><p>R$ ${fmtMoeda(l.valor || 0)}</p></div>
-      <div><label>Vigência</label><p>${vigencia}</p></div>
-      <div><label>Status</label><p><span class="badge ${stClass}">${stLabel}</span></p></div>
-      <div><label>Edital</label><p>${escapeHtml(l.edital || '—')}</p></div>
-      <div><label>Data Homologação</label><p>${l.dataHomologacao ? fmtData(l.dataHomologacao) : '—'}</p></div>
-    </div>`;
-
-  if (l.obs) html += `<div class="info-box">${escapeHtml(l.obs)}</div>`;
-
-  const arquivos = l.arquivos || [];
-  if (arquivos.length) {
-    html += `<h4 style="margin:16px 0 8px;color:#1a3c5e;">Arquivos Anexos</h4>`;
-    html += arquivos.map((a, i) => {
-      const tipoLabel = {edital:'Edital',contrato:'Contrato',aditivo:'Aditivo',outro:'Outro'}[a.tipo] || a.tipo;
-      return `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#f5f5f5;border-radius:4px;margin-bottom:4px;">
-        <span style="font-size:0.85rem;"><b>[${tipoLabel}]</b> ${escapeHtml(a.name || 'arquivo')}</span>
-        <button class="btn btn-sm btn-primary" onclick="previewAnexo('${a.data || ''}','${escapeHtml(a.name || 'arquivo')}')" style="padding:2px 8px;font-size:0.75rem;">Ver</button>
-      </div>`;
-    }).join('');
-  }
-
-  html += `<div class="resumo-box" id="resumo-licitacao-${l.id}">`;
-  if (l.resumo) {
-    html += `<h4 style="margin:12px 0 4px;color:#1a3c5e;">Resumo da Licitação</h4>`;
-    html += `<p style="font-size:0.9rem;line-height:1.5;white-space:pre-wrap;">${escapeHtml(l.resumo)}</p>`;
-    html += `<button class="btn btn-sm btn-primary" onclick="gerarResumo('licitacao','${l.id}')" style="margin-top:8px;">📄 Regenerar Resumo com IA</button>`;
-  } else {
-    html += `<button class="btn btn-sm btn-primary" onclick="gerarResumo('licitacao','${l.id}')" style="margin-top:8px;">📄 Gerar Resumo com IA</button>`;
-  }
-  html += `</div>`;
-
-  document.getElementById('detalhe-content').innerHTML = html;
-  const btns = document.getElementById('detalhe-btns');
-  btns.innerHTML = `<button class="btn btn-primary" onclick="editarLicitacao('${id}'); fecharModal('modal-detalhe')">Editar</button>`;
-  abrirModal('modal-detalhe');
-}
-
-let _licitacaoArquivosTemp = [];
-
-function renderArquivosLicitacao(arquivos) {
-  _licitacaoArquivosTemp = arquivos || [];
-  const container = document.getElementById('ml-arquivos-lista');
-  if (!_licitacaoArquivosTemp.length) {
-    container.innerHTML = '<p style="color:#aaa;font-size:0.85rem;">Nenhum arquivo anexado.</p>';
-    return;
-  }
-  const isAdmin = (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin');
-  container.innerHTML = _licitacaoArquivosTemp.map((a, i) => {
-    const tipoLabel = {edital:'Edital',contrato:'Contrato',aditivo:'Aditivo',outro:'Outro'}[a.tipo] || a.tipo;
-    const delBtn = isAdmin ? `<button class="btn btn-sm btn-danger" onclick="removerArquivoLicitacao(${i})" style="padding:2px 6px;font-size:0.7rem;">x</button>` : '';
-    return `<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;background:#f5f5f5;border-radius:4px;margin-bottom:4px;">
-      <span style="font-size:0.82rem;"><b>[${tipoLabel}]</b> ${escapeHtml(a.name || 'arquivo')}</span>
-      ${delBtn}
-    </div>`;
-  }).join('');
-}
-
-async function adicionarArquivoLicitacao() {
-  const input = document.getElementById('ml-novo-arquivo');
-  const tipo = document.getElementById('ml-arquivo-tipo').value;
-  if (!input.files || !input.files[0]) {
-    mostrarToast('Selecione um arquivo.', 'erro'); return;
-  }
-  const b64 = await fileToBase64(input.files[0]);
-  _licitacaoArquivosTemp.push({ name: input.files[0].name, data: b64, tipo });
-  input.value = '';
-  renderArquivosLicitacao(_licitacaoArquivosTemp);
-  const editId = document.getElementById('ml-id').value;
-  if (editId) {
-    const licitacoes = getLicitacoes();
-    const idx = licitacoes.findIndex(l => l.id === editId);
-    if (idx !== -1) {
-      licitacoes[idx].arquivos = _licitacaoArquivosTemp;
-      saveLicitacoes(licitacoes);
-      apiCall('PUT', 'licitacoes/' + editId, { arquivos: JSON.stringify(_licitacaoArquivosTemp) }).catch(() => {
-        syncToServer().catch(() => {});
-      });
-    }
-  }
-}
-
-function removerArquivoLicitacao(idx) {
-  if (!confirm('Remover este arquivo?')) return;
-  _licitacaoArquivosTemp.splice(idx, 1);
-  renderArquivosLicitacao(_licitacaoArquivosTemp);
-  const editId = document.getElementById('ml-id').value;
-  if (editId) {
-    const licitacoes = getLicitacoes();
-    const licIdx = licitacoes.findIndex(l => l.id === editId);
-    if (licIdx !== -1) {
-      licitacoes[licIdx].arquivos = _licitacaoArquivosTemp;
-      saveLicitacoes(licitacoes);
-      apiCall('PUT', 'licitacoes/' + editId, { arquivos: JSON.stringify(_licitacaoArquivosTemp) }).catch(() => {
-        syncToServer().catch(() => {});
-      });
-    }
-  }
-}
-
-async function carregarAditivosLicitacao(licitacaoId) {
-  const container = document.getElementById('ml-aditivos-lista');
-  try {
-    const r = await fetch(`/api/licitacoes/${licitacaoId}/aditivos`);
-    const aditivos = await r.json();
-    if (!aditivos.length) {
-      container.innerHTML = '<p style="color:#aaa;font-size:0.85rem;">Nenhum aditivo registrado.</p>';
-      return;
-    }
-    container.innerHTML = aditivos.map(a => {
-      const tipoLabel = {renovacao:'Renovação','aditivo_valor':'Aditivo de Valor','aditivo_prazo':'Aditivo de Prazo','aditivo_valor_prazo':'Aditivo Valor+Prazo',outro:'Outro'}[a.tipo] || a.tipo;
-      const arqBtns = (a.arquivos || []).map(ar => `<button class="btn btn-sm btn-primary" onclick="previewAnexo('${ar.data || ''}','${escapeHtml(ar.name || 'aditivo')}')" style="padding:2px 6px;font-size:0.7rem;">${escapeHtml(ar.name?.slice(0,20) || 'arquivo')}</button>`).join(' ');
-      const vigencia = (a.dataInicio && a.dataFim) ? `${fmtData(a.dataInicio)} a ${fmtData(a.dataFim)}` : '';
-      const valor = a.valorNovo ? `R$ ${fmtMoeda(a.valorNovo)}` : '';
-      return `<div style="border:1px solid #ddd;border-radius:6px;padding:8px 12px;margin-bottom:6px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <b style="font-size:0.85rem;">${tipoLabel}</b>
-          <button class="btn btn-sm btn-danger" onclick="excluirAditivoLicitacao('${licitacaoId}','${a.id}')" style="padding:2px 6px;font-size:0.7rem;">Excluir</button>
-        </div>
-        ${a.descricao ? `<p style="margin:4px 0;font-size:0.82rem;color:#555;">${escapeHtml(a.descricao)}</p>` : ''}
-        <div style="font-size:0.8rem;color:#666;">${vigencia ? `Vigência: ${vigencia}` : ''} ${valor ? `| Valor: ${valor}` : ''}</div>
-        ${arqBtns ? `<div style="margin-top:4px;">${arqBtns}</div>` : ''}
-      </div>`;
-    }).join('');
-  } catch(e) {
-    container.innerHTML = '<p style="color:#aaa;font-size:0.85rem;">Nenhum aditivo registrado.</p>';
-  }
-}
-
-let _aditivoLicitacaoId = null;
-function abrirModalAditivoLicitacao() {
-  _aditivoLicitacaoId = document.getElementById('ml-id').value;
-  if (!_aditivoLicitacaoId) {
-    mostrarToast('Salve a licitação primeiro para adicionar aditivos.', 'erro'); return;
-  }
-  document.getElementById('mal-tipo').value = 'renovacao';
-  document.getElementById('mal-descricao').value = '';
-  document.getElementById('mal-valor-ant').value = '';
-  document.getElementById('mal-valor-novo').value = '';
-  document.getElementById('mal-inicio').value = '';
-  document.getElementById('mal-fim').value = '';
-  document.getElementById('mal-arquivo').value = '';
-  abrirModal('modal-aditivo-licitacao');
-}
-
-async function salvarAditivoLicitacao() {
-  if (!_aditivoLicitacaoId) return;
-  const tipo = document.getElementById('mal-tipo').value;
-  const descricao = document.getElementById('mal-descricao').value.trim();
-  const valorAnterior = parseFloat(document.getElementById('mal-valor-ant').value) || 0;
-  const valorNovo = parseFloat(document.getElementById('mal-valor-novo').value) || 0;
-  const dataInicio = document.getElementById('mal-inicio').value;
-  const dataFim = document.getElementById('mal-fim').value;
-  const arqInput = document.getElementById('mal-arquivo');
-  let arquivos = [];
-  if (arqInput.files && arqInput.files[0]) {
-    const b64 = await fileToBase64(arqInput.files[0]);
-    arquivos.push({ name: arqInput.files[0].name, data: b64, tipo: 'aditivo' });
-  }
-  getCsrfToken().then(() => {
-    fetch(`/api/licitacoes/${_aditivoLicitacaoId}/aditivos`, {
-      method: 'POST', headers: Object.assign({'Content-Type':'application/json'}, csrfHeaders()),
-      body: JSON.stringify({ tipo, descricao, valorAnterior, valorNovo, dataInicio, dataFim, arquivos })
-    }).then(r => r.json()).then(d => {
-      if (d.ok) {
-        fecharModal('modal-aditivo-licitacao');
-        carregarAditivosLicitacao(_aditivoLicitacaoId);
-        mostrarToast('Aditivo salvo!', 'sucesso');
-      } else {
-        mostrarToast(d.erro || 'Erro ao salvar aditivo.', 'erro');
-      }
-    }).catch(() => mostrarToast('Servidor offline.', 'erro'));
-  });
-}
-
-function excluirAditivoLicitacao(licitacaoId, aditivoId) {
-  if (!confirm('Excluir este aditivo?')) return;
-  getCsrfToken().then(() => {
-    fetch(`/api/licitacoes/${licitacaoId}/aditivos/${aditivoId}`, {
-      method: 'DELETE', headers: csrfHeaders()
-    }).then(r => r.json()).then(d => {
-      if (d.ok) {
-        carregarAditivosLicitacao(licitacaoId);
-        mostrarToast('Aditivo excluído.', 'sucesso');
-      }
-    }).catch(() => mostrarToast('Erro ao excluir.', 'erro'));
-  });
-}
-
 // ===================== NAVEGAÇÃO =====================
 function showPage(id, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -4543,8 +3182,6 @@ function showPage(id, btn) {
   if (id === 'contratos') renderContratos();
   if (id === 'pagamentos') renderPagamentos();
   if (id === 'novo-contrato') { limparFormContrato(); popularTipoSelect(); popularEmpresaSelect(); popularSetorSelect(); }
-  if (id === 'certidoes') { popularFiltroEmpresaCertidoes(); popularFiltroUfCertidoes(); popularFiltroTipoCertidoes(); renderCertidoes(); }
-  if (id === 'licitacoes') { popularFiltroEmpresaLicitacoes(); renderLicitacoes(); }
   if (id === 'configuracao') {
     const activeSub = document.querySelector('.config-section.active');
     if (!activeSub) showConfigSub('usuarios');
@@ -4589,7 +3226,7 @@ function showConfigSub(section) {
   document.getElementById('config-dropdown').classList.remove('show');
 
   if (section === 'usuarios') renderUsuarios();
-  if (section === 'empresas') { renderEmpresasConfig(); popularDestEmpresaCheckboxes(); }
+  if (section === 'empresas') { popularEmpresaUfDropdown(''); renderEmpresasConfig(); popularDestEmpresaCheckboxes(); }
   if (section === 'setores') renderSetoresConfig();
   if (section === 'tipos') renderTiposConfig();
   if (section === 'destinatarios') { renderDestinatariosConfig(); popularDestEmpresaCheckboxes(); }
@@ -4656,6 +3293,15 @@ document.getElementById('f-forma-pgto').addEventListener('change', function() {
 // ===================== PARCELAS MANUAIS (AVULSO) =====================
 let _parcelasManuais = [];
 
+// Soma das parcelas JA PAGAS do contrato em edicao (nao aparecem na lista manual)
+function getPagoContratoEditando() {
+  const editingId = window._editandoContrato;
+  if (!editingId) return 0;
+  return getPagamentos()
+    .filter(p => p.contratoId === editingId && (p.dataPagamento || p.comprovante || p.status === 'pago'))
+    .reduce((s, p) => s + (p.valorPago || p.valor || 0), 0);
+}
+
 function adicionarParcelaManual() {
   const desc = document.getElementById('pm-desc').value.trim();
   const valor = parseFloat(document.getElementById('pm-valor').value) || 0;
@@ -4664,9 +3310,10 @@ function adicionarParcelaManual() {
     mostrarToast('Preencha descrição, valor e vencimento da parcela.', 'erro'); return;
   }
   const total = parseFloat(document.getElementById('f-valor').value) || 0;
+  const pago = getPagoContratoEditando();
   const somaAtual = _parcelasManuais.reduce((s, p) => s + p.valor, 0);
-  if (somaAtual + valor > total) {
-    mostrarToast('O valor das parcelas excede o valor total do contrato!', 'erro'); return;
+  if (pago + somaAtual + valor > total + 0.01) {
+    mostrarToast('O valor das parcelas (incluindo as ja pagas) excede o valor total do contrato!', 'erro'); return;
   }
   _parcelasManuais.push({ desc, valor, venc });
   _parcelasManuais.sort((a, b) => a.venc.localeCompare(b.venc));
@@ -4675,9 +3322,9 @@ function adicionarParcelaManual() {
   document.getElementById('pm-valor').value = '';
   document.getElementById('pm-vencimento').value = '';
 
-  // Sugerir proxima parcela automaticamente com saldo restante
+  // Sugerir proxima parcela automaticamente com saldo restante (descontando pagas)
   const novaSoma = _parcelasManuais.reduce((s, p) => s + p.valor, 0);
-  const saldo = total - novaSoma;
+  const saldo = total - pago - novaSoma;
   if (saldo > 0.01) {
     const proxNum = _parcelasManuais.length + 1;
     document.getElementById('pm-desc').value = `Parcela ${proxNum}`;
@@ -4710,7 +3357,8 @@ function renderParcelasManuais() {
 function atualizarSaldoParcelasManuais() {
   const total = parseFloat(document.getElementById('f-valor').value) || 0;
   const soma = _parcelasManuais.reduce((s, p) => s + p.valor, 0);
-  const saldo = total - soma;
+  const pago = getPagoContratoEditando();
+  const saldo = total - pago - soma;
   const el = document.getElementById('pm-saldo-restante');
   if (el) {
     el.textContent = `R$ ${fmtMoeda(saldo)}`;
@@ -4718,7 +3366,7 @@ function atualizarSaldoParcelasManuais() {
   }
   const infoEl = document.getElementById('saldo-contrato-info');
   if (infoEl) {
-    infoEl.textContent = `Total: R$ ${fmtMoeda(total)} | Lançado: R$ ${fmtMoeda(soma)}`;
+    infoEl.textContent = `Total: R$ ${fmtMoeda(total)} | Já pago: R$ ${fmtMoeda(pago)} | Em aberto: R$ ${fmtMoeda(soma)}`;
   }
 }
 
@@ -4740,10 +3388,12 @@ function gerarNumeroContrato() {
 function limparFormContrato() {
   ['f-objeto','f-parte','f-doc','f-valor','f-inicio',
    'f-fim','f-responsavel','f-setor','f-obs','f-qtd-parcelas',
-   'f-dia-venc','f-valor-parcela'].forEach(id => {
+   'f-dia-venc','f-valor-parcela','f-cnpj-empresa'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  const infoEmp = document.getElementById('f-empresa-info');
+  if (infoEmp) { infoEmp.textContent = ''; infoEmp.style.color = '#888'; }
   removerArquivoContrato();
   document.getElementById('f-tipo').value = '';
   document.getElementById('f-empresa').value = '';
@@ -4830,6 +3480,18 @@ async function salvarContrato() {
   if (editingId) {
     const idx = contratos.findIndex(c => c.id === editingId);
     if (idx === -1) { _saveSyncRunning = false; return; }
+
+    // Sincroniza pagamentos deste contrato com o servidor antes de decidir o que alterar.
+    // Evita que baixas/comprovantes feitos em outra maquina sejam perdidos por cache desatualizado.
+    try {
+      const syncPay = await apiCall('GET', 'payments');
+      if (syncPay && syncPay.ok && Array.isArray(syncPay.pagamentos)) {
+        const fresh = syncPay.pagamentos.filter(p => !p.deleted_at).map(mapServerPayment);
+        cachedPagamentos = cachedPagamentos.filter(p => p.contratoId !== editingId).concat(fresh);
+        savePagamentos(cachedPagamentos);
+      }
+    } catch (e) { console.warn('[SAVE] Sync de pagamentos pre-edicao falhou:', e.message); }
+
     if (!arquivoB64) {
       if (_arquivoContrato && !(_arquivoContrato instanceof File)) {
         arquivoB64 = _arquivoContrato;
@@ -4852,25 +3514,43 @@ async function salvarContrato() {
     };
 
     const pagamentos = getPagamentos();
-    const paidPayments = pagamentos.filter(p => p.contratoId === editingId && p.dataPagamento !== null);
-    const unpaidPayments = pagamentos.filter(p => p.contratoId === editingId && p.dataPagamento === null);
+    const isProtegido = p => !!(p.dataPagamento || p.comprovante || p.status === 'pago');
+    const contractPays = pagamentos.filter(p => p.contratoId === editingId);
+    const paidPayments = contractPays.filter(p => p.dataPagamento);
+    const protectedUnpaid = contractPays.filter(p => !p.dataPagamento && (p.comprovante || p.status === 'pago'));
+    const unpaidPayments = contractPays.filter(p => !isProtegido(p));
     const otherPayments = pagamentos.filter(p => p.contratoId !== editingId);
 
-    unpaidPayments.forEach(p => { paymentsToUpdate.push({ ...p, deleted_at: now(), updated_at: now() }); });
+    // Reconciliacao: atualiza parcelas existentes no lugar (preserva id, baixa e comprovante),
+    // cria apenas as novas e exclui somente as removidas SEM baixa/comprovante.
+    function reconcileParcelas(desired) {
+      const existing = unpaidPayments.slice().sort((a, b) => (a.vencimento || '').localeCompare(b.vencimento || ''));
+      const n = Math.min(existing.length, desired.length);
+      for (let i = 0; i < n; i++) {
+        paymentsToUpdate.push({ op: 'patch', id: existing[i].id, descricao: desired[i].descricao, valor: desired[i].valor, vencimento: desired[i].vencimento, updated_at: now() });
+      }
+      for (let i = n; i < existing.length; i++) {
+        paymentsToUpdate.push({ op: 'delete', id: existing[i].id, deleted_at: now(), status: 'cancelado', updated_at: now() });
+      }
+      for (let i = n; i < desired.length; i++) {
+        paymentsToCreate.push({
+          id: uid(), contratoId: editingId, contratoNum: numero,
+          descricao: desired[i].descricao, valor: desired[i].valor, vencimento: desired[i].vencimento,
+          dataPagamento: null, valorPago: null, formaPgto: null,
+          obs: '', comprovante: null, status: 'pendente', updated_at: now()
+        });
+      }
+    }
 
     if (temParcelas && pgtoConfig && pgtoConfig.forma === 'avulso') {
-      paymentsToCreate = _parcelasManuais.map(p => ({
-        id: uid(), contratoId: editingId, contratoNum: numero,
-        descricao: p.desc, valor: p.valor, vencimento: p.venc,
-        dataPagamento: null, valorPago: null, formaPgto: null,
-        obs: '', comprovante: null, status: 'pendente', updated_at: now()
-      }));
+      reconcileParcelas(_parcelasManuais.map(p => ({ descricao: p.desc, valor: p.valor, vencimento: p.venc })));
     } else if (temParcelas && pgtoConfig && pgtoConfig.forma !== 'avulso') {
       const valorJaPago = paidPayments.reduce((s, p) => s + (p.valorPago || p.valor || 0), 0);
       const saldoRestante = valor - valorJaPago;
       const qtdNovaTotal = pgtoConfig.qtdParcelas;
       const qtdPagas = paidPayments.length;
       const qtdRestantes = Math.max(0, qtdNovaTotal - qtdPagas);
+      const desired = [];
       if (qtdRestantes > 0 && saldoRestante > 0) {
         const valorParcela = saldoRestante / qtdRestantes;
         let inicioNovas = inicio;
@@ -4881,19 +3561,26 @@ async function salvarContrato() {
         }
         for (let i = 0; i < qtdRestantes; i++) {
           const d = new Date(inicioNovas + 'T12:00:00'); d.setMonth(d.getMonth() + i);
-          paymentsToCreate.push({
-            id: uid(), contratoId: editingId, contratoNum: numero,
+          desired.push({
             descricao: `Parcela ${qtdPagas + i + 1}/${qtdNovaTotal}`,
             valor: Math.round(valorParcela * 100) / 100,
-            vencimento: d.toISOString().slice(0, 10),
-            dataPagamento: null, valorPago: null, formaPgto: null,
-            obs: '', comprovante: null, status: 'pendente', updated_at: now()
+            vencimento: d.toISOString().slice(0, 10)
           });
         }
       }
+      reconcileParcelas(desired);
+    } else {
+      // Sem parcelas: exclui apenas parcelas nao pagas/sem comprovante
+      unpaidPayments.forEach(p => { paymentsToUpdate.push({ op: 'delete', id: p.id, deleted_at: now(), status: 'cancelado', updated_at: now() }); });
     }
-    const updatedUnpaid = paymentsToUpdate.map(p => ({ ...p }));
-    newPagamentosResult = otherPayments.concat(paidPayments).concat(updatedUnpaid).concat(paymentsToCreate);
+
+    const patchedById = {};
+    paymentsToUpdate.forEach(u => { if (u.op === 'patch') patchedById[u.id] = u; });
+    const deletedIds = new Set(paymentsToUpdate.filter(u => u.op === 'delete').map(u => u.id));
+    const survivingUnpaid = unpaidPayments
+      .filter(p => !deletedIds.has(p.id))
+      .map(p => patchedById[p.id] ? { ...p, descricao: patchedById[p.id].descricao, valor: patchedById[p.id].valor, vencimento: patchedById[p.id].vencimento, updated_at: patchedById[p.id].updated_at } : { ...p });
+    newPagamentosResult = otherPayments.concat(paidPayments).concat(protectedUnpaid).concat(survivingUnpaid).concat(paymentsToCreate);
   } else {
     if (cachedContratos.find(c => c.numero === numero)) {
       _saveSyncRunning = false;
@@ -4949,12 +3636,28 @@ async function salvarContrato() {
   mostrarToast('Salvando no servidor...', 'info');
 
   try {
+    const arquivoParaUpload = contractData.arquivo;
+    contractData.arquivo = undefined;
+
+    let contratoId = editingId;
     if (editingId) {
       const r = await apiCall('PUT', 'contracts/' + editingId, contractData);
       if (!r || !r.ok) throw new Error(r?.erro || 'Erro ao atualizar contrato');
     } else {
       const r = await apiCall('POST', 'contracts', contractData);
       if (!r || !r.ok) throw new Error(r?.erro || 'Erro ao criar contrato');
+      contratoId = r.id;
+    }
+
+    if (arquivoParaUpload && arquivoParaUpload.data) {
+      try {
+        await apiCall('POST', 'upload-file', {
+          table: 'contracts', id: contratoId,
+          field: 'arquivo_contrato',
+          data: JSON.stringify(arquivoParaUpload),
+          filename: arquivoParaUpload.name
+        });
+      } catch(e) { console.error('[UPLOAD] Erro ao enviar anexo:', e.message); }
     }
 
     let payErrors = 0;
@@ -4966,7 +3669,10 @@ async function salvarContrato() {
     }
     for (const p of paymentsToUpdate) {
       try {
-        const r = await apiCall('PUT', 'payments/' + p.id, { deleted_at: p.deleted_at, status: 'cancelado', updated_at: p.updated_at });
+        const payload = p.op === 'patch'
+          ? { descricao: p.descricao, valor: p.valor, vencimento: p.vencimento, updated_at: p.updated_at }
+          : { deleted_at: p.deleted_at, status: 'cancelado', updated_at: p.updated_at };
+        const r = await apiCall('PUT', 'payments/' + p.id, payload);
         if (!r || !r.ok) { payErrors++; console.error('[PUSH] Erro ao atualizar pagamento:', p.id, r?.erro); }
       } catch(e) { payErrors++; console.error('[PUSH] Excecao ao atualizar pagamento:', p.id, e.message); }
     }
@@ -4974,6 +3680,7 @@ async function salvarContrato() {
 
     if (editingId) {
       if (newPagamentosResult) savePagamentos(newPagamentosResult);
+      saveContratos(contratos);
     } else {
       const newContrato = window._newContrato;
       delete window._newContrato;
@@ -5132,14 +3839,25 @@ function renderContratos(page) {
 
 window.baixarAnexo = function(id) {
   const c = getContratos().find(x => x.id === id);
-  if(c && c.arquivo) previewAnexo(c.arquivo.data, c.arquivo.name);
+  if (!c) { mostrarToast('Contrato nao encontrado.', 'erro'); return; }
+  if (!c.arquivo) { mostrarToast('Nenhum arquivo anexado a este contrato.', 'erro'); return; }
+  if (typeof c.arquivo === 'string') {
+    try { c.arquivo = JSON.parse(c.arquivo); } catch(e) { mostrarToast('Arquivo corrompido. Tente reenviar o anexo.', 'erro'); return; }
+  }
+  if (!c.arquivo.data) { mostrarToast('Arquivo sem dados. Tente reenviar o anexo.', 'erro'); return; }
+  previewAnexo(c.arquivo.data, c.arquivo.name);
 }
 window.baixarAnexoAditivo = function(contratoId, aditivoId) {
   const c = getContratos().find(x => x.id === contratoId);
-  if (c && c.aditivos) {
-    const a = c.aditivos.find(x => x.id === aditivoId);
-    if (a && a.arquivo) previewAnexo(a.arquivo.data, a.arquivo.name);
+  if (!c || !c.aditivos) { mostrarToast('Aditivo nao encontrado.', 'erro'); return; }
+  const a = c.aditivos.find(x => x.id === aditivoId);
+  if (!a) { mostrarToast('Aditivo nao encontrado.', 'erro'); return; }
+  if (!a.arquivo) { mostrarToast('Nenhum arquivo anexado a este aditivo.', 'erro'); return; }
+  if (typeof a.arquivo === 'string') {
+    try { a.arquivo = JSON.parse(a.arquivo); } catch(e) { mostrarToast('Arquivo corrompido. Tente reenviar o anexo.', 'erro'); return; }
   }
+  if (!a.arquivo.data) { mostrarToast('Arquivo sem dados. Tente reenviar o anexo.', 'erro'); return; }
+  previewAnexo(a.arquivo.data, a.arquivo.name);
 }
 
 // ===================== DETALHE =====================
@@ -5234,7 +3952,7 @@ function abrirDetalhe(id) {
 }
 
 function gerarResumo(entity, id) {
-  const btn = document.querySelector(`#resumo-${entity}-${id} button`) || document.querySelector(`#ml-resumo-box button`);
+  const btn = document.querySelector(`#resumo-${entity}-${id} button`);
   if (btn) { btn.disabled = true; btn.textContent = 'Gerando...'; }
   fetch('/api/resumo', { method:'POST', headers:Object.assign({'Content-Type':'application/json'}, csrfHeaders()), body:JSON.stringify({entity, entity_id: id}) })
     .then(r => r.json())
@@ -5249,22 +3967,6 @@ function gerarResumo(entity, id) {
             container.innerHTML = `<h4 style="margin:12px 0 4px;color:#1a3c5e;">Resumo do Contrato</h4>
               <p style="font-size:0.9rem;line-height:1.5;white-space:pre-wrap;">${escapeHtml(d.resumo)}</p>
               <button class="btn btn-sm btn-primary" onclick="gerarResumo('${entity}','${id}')" style="margin-top:8px;">📄 Regenerar Resumo com IA</button>`;
-          }
-        } else if (entity === 'licitacao') {
-          const licitacoes = getLicitacoes();
-          const l = licitacoes.find(x => x.id === id);
-          if (l) { l.resumo = d.resumo; saveLicitacoes(licitacoes); }
-          const container = document.getElementById('ml-resumo-box');
-          if (container) {
-            container.innerHTML = `<h4 style="margin:12px 0 4px;color:#1a3c5e;">Resumo da Licitação</h4>
-              <p style="font-size:0.9rem;line-height:1.5;white-space:pre-wrap;">${escapeHtml(d.resumo)}</p>
-              <button class="btn btn-sm btn-primary" onclick="gerarResumo('licitacao','${id}')" style="margin-top:8px;">📄 Regenerar Resumo com IA</button>`;
-          }
-          const containerDetalhe = document.getElementById(`resumo-licitacao-${id}`);
-          if (containerDetalhe) {
-            containerDetalhe.innerHTML = `<h4 style="margin:12px 0 4px;color:#1a3c5e;">Resumo da Licitação</h4>
-              <p style="font-size:0.9rem;line-height:1.5;white-space:pre-wrap;">${escapeHtml(d.resumo)}</p>
-              <button class="btn btn-sm btn-primary" onclick="gerarResumo('licitacao','${id}')" style="margin-top:8px;">📄 Regenerar Resumo com IA</button>`;
           }
         }
         mostrarToast('Resumo gerado com sucesso!', 'sucesso');
@@ -5292,6 +3994,16 @@ function editarContrato(id) {
   document.getElementById('f-fim').value    = c.fim;
   document.getElementById('f-tipo').value   = c.tipo;
   document.getElementById('f-empresa').value = c.empresaId || '';
+  const empresaObj = getEmpresas().find(e => e.id === c.empresaId);
+  const cnpjEmpInput = document.getElementById('f-cnpj-empresa');
+  if (cnpjEmpInput) cnpjEmpInput.value = empresaObj ? (empresaObj.cnpj || '') : '';
+  const infoEmp = document.getElementById('f-empresa-info');
+  if (infoEmp && empresaObj) {
+    infoEmp.innerHTML = '<strong>' + escapeHtml(empresaObj.nome) + '</strong>' + (empresaObj.uf ? ' — UF: <strong>' + empresaObj.uf + '</strong>' : '');
+    infoEmp.style.color = '#2a7';
+  } else if (infoEmp) {
+    infoEmp.textContent = '';
+  }
   document.getElementById('f-responsavel').value = c.responsavel || '';
   document.getElementById('f-setor').value  = c.setor || '';
   document.getElementById('f-obs').value    = c.obs || '';
@@ -5317,7 +4029,7 @@ function editarContrato(id) {
     document.getElementById('f-valor-parcela').value = c.pgtoConfig.valorParcela || '';
     atualizarCamposParcela();
     if (c.pgtoConfig.forma === 'avulso') {
-      const pagamentosExistentes = getPagamentos().filter(p => p.contratoId === id && !p.dataPagamento);
+      const pagamentosExistentes = getPagamentos().filter(p => p.contratoId === id && !p.dataPagamento && !p.comprovante && p.status !== 'pago');
       _parcelasManuais = pagamentosExistentes.map(p => ({
         desc: p.descricao, valor: p.valor, venc: p.vencimento
       }));
@@ -5332,14 +4044,18 @@ async function excluirContrato(id) {
   mostrarToast('Excluindo no servidor...', 'info');
   const ts = now();
   try {
+    const contratos = getContratos();
+    const pagamentos = getPagamentos();
+    const pagamentosContrato = pagamentos.filter(p => p.contratoId === id);
+    for (const p of pagamentosContrato) {
+      try { await apiCall('PUT', 'payments/' + p.id, { deleted_at: ts, status: 'cancelado', updated_at: ts }); } catch(e) {}
+    }
     const r = await apiCall('PUT', 'contracts/' + id, { deleted_at: ts, updated_at: ts });
     if (!r || !r.ok) throw new Error(r?.erro || 'Erro ao excluir contrato');
-    const contratos = getContratos();
     const idx = contratos.findIndex(c => c.id === id);
     if (idx !== -1) { contratos[idx].deleted_at = ts; contratos[idx].updated_at = ts; }
     saveContratos(contratos);
-    const pagamentos = getPagamentos();
-    pagamentos.filter(p => p.contratoId === id).forEach(p => { p.deleted_at = ts; p.updated_at = ts; });
+    pagamentosContrato.forEach(p => { p.deleted_at = ts; p.updated_at = ts; });
     savePagamentos(pagamentos);
     renderContratos();
     renderDashboard();
@@ -5481,7 +4197,14 @@ async function salvarAditivo() {
   mostrarToast('Salvando aditivo no servidor...', 'info');
 
   try {
-    const r = await apiCall('PUT', 'contracts/' + contratos[idx].id, contratos[idx]);
+    const c = contratos[idx];
+    const r = await apiCall('PUT', 'contracts/' + c.id, {
+      numero: c.numero, objeto: c.objeto, parte: c.parte, valor: c.valor,
+      inicio: c.inicio, fim: c.fim, tipo: c.tipo, empresaId: c.empresaId,
+      doc: c.doc, responsavel: c.responsavel, setor: c.setor, obs: c.obs,
+      temParcelas: c.temParcelas, pgtoConfig: c.pgtoConfig,
+      aditivos: c.aditivos || [], updated_at: c.updated_at
+    });
     if (!r || !r.ok) throw new Error(r?.erro || 'Erro ao salvar aditivo');
     saveContratos(contratos);
     fecharModal('modal-aditivo');
@@ -5516,7 +4239,14 @@ async function excluirAditivo(contratoId, aditivoId) {
   contratos[idx].aditivos = (contratos[idx].aditivos || []).filter(a => a.id !== aditivoId);
   recalcularContrato(contratos, idx);
   try {
-    const r = await apiCall('PUT', 'contracts/' + contratoId, contratos[idx]);
+    const c = contratos[idx];
+    const r = await apiCall('PUT', 'contracts/' + contratoId, {
+      numero: c.numero, objeto: c.objeto, parte: c.parte, valor: c.valor,
+      inicio: c.inicio, fim: c.fim, tipo: c.tipo, empresaId: c.empresaId,
+      doc: c.doc, responsavel: c.responsavel, setor: c.setor, obs: c.obs,
+      temParcelas: c.temParcelas, pgtoConfig: c.pgtoConfig,
+      aditivos: c.aditivos || [], updated_at: c.updated_at
+    });
     if (!r || !r.ok) throw new Error(r?.erro || 'Erro ao excluir aditivo');
     saveContratos(contratos);
     renderContratos();
@@ -5625,7 +4355,13 @@ function renderPagamentos(page) {
 
 window.baixarComprovante = function(id) {
   const p = getPagamentos().find(x => x.id === id);
-  if(p && p.comprovante) previewAnexo(p.comprovante.data, p.comprovante.name);
+  if (!p) { mostrarToast('Pagamento nao encontrado.', 'erro'); return; }
+  if (!p.comprovante) { mostrarToast('Nenhum comprovante anexado.', 'erro'); return; }
+  if (typeof p.comprovante === 'string') {
+    try { p.comprovante = JSON.parse(p.comprovante); } catch(e) { mostrarToast('Comprovante corrompido. Tente reenviar.', 'erro'); return; }
+  }
+  if (!p.comprovante.data) { mostrarToast('Comprovante sem dados. Tente reenviar.', 'erro'); return; }
+  previewAnexo(p.comprovante.data, p.comprovante.name);
 }
 
 function abrirLancarPgto(contratoId) {
@@ -5719,11 +4455,23 @@ async function confirmarBaixa() {
     obs: document.getElementById('bx-obs').value,
     updated_at: now()
   };
-  if(comprovanteB64) updatedData.comprovante = comprovanteB64;
 
   try {
     const r = await apiCall('PUT', 'payments/' + _baixaId, updatedData);
     if (!r || !r.ok) throw new Error(r?.erro || 'Erro ao registrar baixa');
+
+    if (comprovanteB64 && comprovanteB64.data) {
+      try {
+        await apiCall('POST', 'upload-file', {
+          table: 'payments', id: _baixaId,
+          field: 'comprovante',
+          data: JSON.stringify(comprovanteB64),
+          filename: comprovanteB64.name
+        });
+        updatedData.comprovante = comprovanteB64;
+      } catch(e) { console.error('[UPLOAD] Erro ao enviar comprovante:', e.message); }
+    }
+
     Object.assign(pagamentos[idx], updatedData);
     savePagamentos(pagamentos);
     fecharModal('modal-baixar');
@@ -5801,20 +4549,6 @@ function renderDashboard() {
   if (empIds) pagamentos = pagamentos.filter(p => contratoIds.has(p.contratoId));
   const hoje = new Date(); hoje.setHours(0,0,0,0);
 
-  let certidoes = getCertidoes();
-  if (empIds) certidoes = certidoes.filter(c => empIds.includes(c.empresaId));
-  const certVencidas = certidoes.filter(c => calcStatusCertidao(c) === 'vencida').length;
-  const certVencendo = certidoes.filter(c => calcStatusCertidao(c) === 'vencendo').length;
-
-  let licitacoes = getLicitacoes();
-  const licTotal = licitacoes.length;
-  const licAndamento = licitacoes.filter(l => l.status === 'em_andamento' || !l.status).length;
-  const licVencidas = licitacoes.filter(l => {
-    if (l.status === 'inativo') return false;
-    if (!l.dataFim) return false;
-    return new Date(l.dataFim + 'T12:00:00') < hoje;
-  }).length;
-
   const ativos   = contratos.filter(c => new Date(c.fim+'T12:00:00') >= hoje).length;
   const vencidos  = contratos.length - ativos;
   const pendentes = pagamentos.filter(p => calcStatusPgto(p)==='pendente').length;
@@ -5847,26 +4581,6 @@ function renderDashboard() {
     <div class="summary-card">
       <div class="value" style="font-size:1.4rem">R$ ${fmtMoeda(totalPend)}</div>
       <div class="label">Valor a Pagar</div>
-    </div>
-    <div class="summary-card orange">
-      <div class="value">${certVencendo}</div>
-      <div class="label">Cert. Próx. Vencer</div>
-    </div>
-    <div class="summary-card red">
-      <div class="value">${certVencidas}</div>
-      <div class="label">Cert. Vencidas</div>
-    </div>
-    <div class="summary-card">
-      <div class="value">${licTotal}</div>
-      <div class="label">Contrato Licitações Total</div>
-    </div>
-    <div class="summary-card green">
-      <div class="value">${licAndamento}</div>
-      <div class="label">Lic. Em Andamento</div>
-    </div>
-    <div class="summary-card red">
-      <div class="value">${licVencidas}</div>
-      <div class="label">Lic. Vencidas</div>
     </div>`;
 
   const filtroParte = (document.getElementById('filtro-dash-parte').value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -6211,7 +4925,7 @@ function carregarConfig() {
 }
 
 function salvarConfig() {
-  const btn = document.querySelector('#page-configuracao .btn-primary');
+  const btn = document.getElementById('btn-salvar-config');
   const msg = document.getElementById('cfg-msg');
   btn.disabled = true; btn.textContent = 'Salvando...';
   getCsrfToken().then(() => {
@@ -6223,7 +4937,7 @@ function salvarConfig() {
     email_destinatario: document.getElementById('cfg-dest').value.trim()
   };
   fetch('/api/config-email', {
-    method:'POST', headers:Object.assign({'Content-Type':'application/json'}, csrfHeaders()), body:JSON.stringify(cfg)
+    method:'POST', headers:Object.assign({'Content-Type':'application/json'}, csrfHeaders()), body:JSON.stringify({ ...cfg, csrf_token: csrfToken })
   }).then(r=>r.json()).then(d=>{
     if(d.ok) { msg.className = 'ok-box'; msg.textContent = 'Configuração salva com sucesso!'; }
     else { msg.className = 'warn-box'; msg.textContent = d.erro || 'Erro ao salvar'; }
@@ -6231,7 +4945,7 @@ function salvarConfig() {
     setTimeout(()=>{ msg.style.display = 'none'; }, 4000);
   }).catch(()=>{
     msg.className = 'warn-box';
-    msg.textContent = 'Servidor offline. Inicie o servidor com "python app.py".';
+    msg.textContent = 'Falha de conexao com o servidor local.';
     msg.style.display = 'block';
   }).finally(()=>{ btn.disabled = false; btn.textContent = 'Salvar Configuração'; });
   }).catch(() => { btn.disabled = false; btn.textContent = 'Salvar Configuração'; });
@@ -6242,24 +4956,12 @@ function carregarPrazos() {
     .then(r=>r.json()).then(cfg => {
       const p = cfg.prazos || {};
       const ct = p.contratos || {};
-      const ce = p.certidoes || {};
-      const li = p.licitacoes || {};
       const pg = p.pagamentos || {};
-      const f1 = ct.faixa1 || [31,35], f2 = ct.faixa2 || [16,30], f3 = ct.faixa3 ?? 15, f4 = ct.faixa4 || [0,14];
-      document.getElementById('pz-ct-f1a').value = f1[0]; document.getElementById('pz-ct-f1b').value = f1[1];
-      document.getElementById('pz-ct-f2a').value = f2[0]; document.getElementById('pz-ct-f2b').value = f2[1];
-      document.getElementById('pz-ct-f3').value = f3;
-      document.getElementById('pz-ct-f4a').value = f4[0]; document.getElementById('pz-ct-f4b').value = f4[1];
-      const cef1 = ce.faixa1 || [31,35], cef2 = ce.faixa2 || [16,30], cef3 = ce.faixa3 ?? 15, cef4 = ce.faixa4 || [0,14];
-      document.getElementById('pz-ce-f1a').value = cef1[0]; document.getElementById('pz-ce-f1b').value = cef1[1];
-      document.getElementById('pz-ce-f2a').value = cef2[0]; document.getElementById('pz-ce-f2b').value = cef2[1];
-      document.getElementById('pz-ce-f3').value = cef3;
-      document.getElementById('pz-ce-f4a').value = cef4[0]; document.getElementById('pz-ce-f4b').value = cef4[1];
-      const lif1 = li.faixa1 || [31,35], lif2 = li.faixa2 || [16,30], lif3 = li.faixa3 ?? 15, lif4 = li.faixa4 || [0,14];
-      document.getElementById('pz-li-f1a').value = lif1[0]; document.getElementById('pz-li-f1b').value = lif1[1];
-      document.getElementById('pz-li-f2a').value = lif2[0]; document.getElementById('pz-li-f2b').value = lif2[1];
-      document.getElementById('pz-li-f3').value = lif3;
-      document.getElementById('pz-li-f4a').value = lif4[0]; document.getElementById('pz-li-f4b').value = lif4[1];
+      const set = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined && v !== null) el.value = v; };
+      if (ct.faixa1) { set('pz-ct-f1a', ct.faixa1[0]); set('pz-ct-f1b', ct.faixa1[1]); }
+      if (ct.faixa2) { set('pz-ct-f2a', ct.faixa2[0]); set('pz-ct-f2b', ct.faixa2[1]); }
+      if (ct.faixa3 !== undefined) set('pz-ct-f3', ct.faixa3);
+      if (ct.faixa4) { set('pz-ct-f4a', ct.faixa4[0]); set('pz-ct-f4b', ct.faixa4[1]); }
       document.getElementById('pz-pg-vencidos').checked = pg.vencidos !== false;
       document.getElementById('pz-pg-hoje').checked = pg.hoje !== false;
       document.getElementById('pz-pg-amanha').checked = pg.amanha !== false;
@@ -6276,18 +4978,6 @@ function salvarPrazos() {
       faixa2: [val('pz-ct-f2a',16), val('pz-ct-f2b',30)],
       faixa3: val('pz-ct-f3',15),
       faixa4: [val('pz-ct-f4a',0), val('pz-ct-f4b',14)]
-    },
-    certidoes: {
-      faixa1: [val('pz-ce-f1a',31), val('pz-ce-f1b',35)],
-      faixa2: [val('pz-ce-f2a',16), val('pz-ce-f2b',30)],
-      faixa3: val('pz-ce-f3',15),
-      faixa4: [val('pz-ce-f4a',0), val('pz-ce-f4b',14)]
-    },
-    licitacoes: {
-      faixa1: [val('pz-li-f1a',31), val('pz-li-f1b',35)],
-      faixa2: [val('pz-li-f2a',16), val('pz-li-f2b',30)],
-      faixa3: val('pz-li-f3',15),
-      faixa4: [val('pz-li-f4a',0), val('pz-li-f4b',14)]
     },
     pagamentos: {
       vencidos: document.getElementById('pz-pg-vencidos').checked,
@@ -6316,7 +5006,7 @@ function salvarPrazos() {
 }
 
 function enviarLembretePagamentos() {
-  const btn = document.querySelector('#page-configuracao .btn-success');
+  const btn = document.getElementById('btn-enviar-lembrete');
   const msg = document.getElementById('cfg-msg');
   btn.disabled = true; btn.textContent = 'Enviando...';
   getCsrfToken().then(() => {
@@ -6346,7 +5036,7 @@ function enviarLembretePagamentos() {
 }
 
 function enviarAlertasContratos() {
-  const btn = document.querySelector('.btn-warning');
+  const btn = document.getElementById('btn-enviar-alertas');
   const msg = document.getElementById('cfg-msg');
   btn.disabled = true; btn.textContent = 'Enviando...';
   getCsrfToken().then(() => {
@@ -6373,69 +5063,6 @@ function enviarAlertasContratos() {
   }).finally(()=>{ btn.disabled = false; btn.textContent = 'Enviar Alertas de Contratos'; });
   }).catch(() => { btn.disabled = false; btn.textContent = 'Enviar Alertas de Contratos'; });
 }
-
-function enviarAlertasCertidoes() {
-  const btn = event.target;
-  const msg = document.getElementById('cfg-msg');
-  btn.disabled = true; btn.textContent = 'Enviando...';
-  getCsrfToken().then(() => {
-  const empresas = getEmpresas().map(e => ({ id: e.id, nome: e.nome }));
-  const sectors = getSectors().map(s => ({ id: s.id, nome: s.nome }));
-  const certidoes = getCertidoes();
-  const destinatarios = getDestinatarios().map(d => ({
-    email: d.email,
-    nome: d.nome || '',
-    empresaIds: d.empresaIds || [],
-    setores: d.setores || []
-  }));
-  fetch('/api/enviar-alertas-certidoes', {
-    method:'POST',
-    headers: Object.assign({'Content-Type':'application/json'}, csrfHeaders()),
-    body:JSON.stringify({ empresas, sectors, certidoes, destinatarios })
-  }).then(r=>r.json()).then(d=>{
-    if(d.ok) { msg.className = 'ok-box'; msg.textContent = d.msg || 'E-mail enviado!'; }
-    else { msg.className = 'warn-box'; msg.textContent = d.erro || 'Erro ao enviar'; }
-    msg.style.display = 'block';
-    setTimeout(()=>{ msg.style.display = 'none'; }, 6000);
-  }).catch(()=>{
-    msg.className = 'warn-box';
-    msg.textContent = 'Servidor offline. Inicie o servidor com "python app.py".';
-    msg.style.display = 'block';
-  }).finally(()=>{ btn.disabled = false; btn.textContent = 'Enviar Alertas de Certidões'; });
-  }).catch(() => { btn.disabled = false; btn.textContent = 'Enviar Alertas de Certidões'; });
-}
-
-function enviarAlertasLicitacoes() {
-  const btn = event.target;
-  const msg = document.getElementById('cfg-msg');
-  btn.disabled = true; btn.textContent = 'Enviando...';
-  getCsrfToken().then(() => {
-  const empresas = getEmpresas().map(e => ({ id: e.id, nome: e.nome }));
-  const sectors = getSectors().map(s => ({ id: s.id, nome: s.nome }));
-  const licitacoes = getLicitacoes();
-  const destinatarios = getDestinatarios().map(d => ({
-    email: d.email,
-    nome: d.nome || '',
-    empresaIds: d.empresaIds || [],
-    setores: d.setores || []
-  }));
-  fetch('/api/enviar-alertas-licitacoes', {
-    method:'POST',
-    headers: Object.assign({'Content-Type':'application/json'}, csrfHeaders()),
-    body:JSON.stringify({ empresas, sectors, licitacoes, destinatarios })
-  }).then(r=>r.json()).then(d=>{
-    if(d.ok) { msg.className = 'ok-box'; msg.textContent = d.msg || 'E-mail enviado!'; }
-    else { msg.className = 'warn-box'; msg.textContent = d.erro || 'Erro ao enviar'; }
-    msg.style.display = 'block';
-    setTimeout(()=>{ msg.style.display = 'none'; }, 6000);
-  }).catch(()=>{
-    msg.className = 'warn-box';
-    msg.textContent = 'Servidor offline. Inicie o servidor com "python app.py".';
-    msg.style.display = 'block';
-  }).finally(()=>{ btn.disabled = false; btn.textContent = 'Enviar Alertas de Contrato Licitações'; });
-  }).catch(() => { btn.disabled = false; btn.textContent = 'Enviar Alertas de Contrato Licitações'; });
-}
-
 // ===================== CSS ADICIONAL =====================
 (function() {
   const style = document.createElement('style');
@@ -6515,8 +5142,6 @@ function renderNotificacoes() {
   const notifs = [];
   const contratos = getContratos();
   const pagamentos = getPagamentos();
-  const certidoes = getCertidoes();
-  const licitacoes = getLicitacoes();
   const hoje = new Date(); hoje.setHours(0,0,0,0);
 
   contratos.forEach(c => {
@@ -6540,30 +5165,7 @@ function renderNotificacoes() {
     }
   });
 
-  certidoes.forEach(c => {
-    const st = calcStatusCertidao(c);
-    if (st === 'vencida') {
-      notifs.push({ tipo: 'urgente', texto: `Certidão "${c.tipo}" VENCIDA${c.empresaId ? ' (' + (getEmpresas().find(e=>e.id===c.empresaId)?.nome||'') + ')' : ''}`, icon: '&#9888;' });
-    } else if (c.dataValidade) {
-      const val = new Date(c.dataValidade + 'T12:00:00');
-      const diffDias = Math.ceil((val - hoje) / (1000*60*60*24));
-      if (diffDias <= 35 && diffDias > 0) {
-        notifs.push({ tipo: 'alerta', texto: `Certidão "${c.tipo}" vence em ${diffDias} dia(s)${c.empresaId ? ' (' + (getEmpresas().find(e=>e.id===c.empresaId)?.nome||'') + ')' : ''}`, icon: '&#128196;' });
-      }
-    }
-  });
 
-  licitacoes.forEach(l => {
-    const vigFim = l.dataFim ? new Date(l.dataFim + 'T12:00:00') : null;
-    if (vigFim && l.status !== 'inativo') {
-      const diffDias = Math.ceil((vigFim - hoje) / (1000*60*60*24));
-      if (diffDias <= 0) {
-        notifs.push({ tipo: 'urgente', texto: `Licitação ${l.numeroLicitacao || ''} VENCIDA`, icon: '&#9888;' });
-      } else if (diffDias <= 35) {
-        notifs.push({ tipo: 'alerta', texto: `Licitação ${l.numeroLicitacao || ''} vence em ${diffDias} dia(s)`, icon: '&#128195;' });
-      }
-    }
-  });
 
   notifs.sort((a,b) => a.tipo === 'urgente' ? -1 : 1);
 
@@ -6593,8 +5195,6 @@ function renderNotificacoes() {
 function checkNotificacoes() {
   const contratos = getContratos();
   const pagamentos = getPagamentos();
-  const certidoes = getCertidoes();
-  const licitacoes = getLicitacoes();
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   let count = 0;
 
@@ -6611,18 +5211,7 @@ function checkNotificacoes() {
     if (diffDias <= 7) count++;
   });
 
-  certidoes.forEach(c => {
-    const st = calcStatusCertidao(c);
-    if (st === 'vencida' || st === 'vencendo') count++;
-  });
 
-  licitacoes.forEach(l => {
-    const vigFim = l.dataFim ? new Date(l.dataFim + 'T12:00:00') : null;
-    if (vigFim && l.status !== 'inativo') {
-      const diffDias = Math.ceil((vigFim - hoje) / (1000*60*60*24));
-      if (diffDias <= 35) count++;
-    }
-  });
 
   const badge = document.getElementById('notif-badge');
   if (badge) {
@@ -6685,9 +5274,7 @@ function alterarMinhaSenha() {
 const PAGE_SIZE = 25;
 let ctCurrentPage = 1;
 let pgCurrentPage = 1;
-let certCurrentPage = 1;
-let lcCurrentPage = 1;
-let pageSizes = { 'ct-pagination': 25, 'pg-pagination': 25, 'cert-pagination': 25, 'lc-pagination': 25 };
+let pageSizes = { 'ct-pagination': 25, 'pg-pagination': 25 };
 
 function renderPagination(totalItems, currentPage, containerId, renderFn) {
   const perPage = pageSizes[containerId] || PAGE_SIZE;
@@ -6869,7 +5456,7 @@ async function estornarSelecionados() {
     try {
       const r = await apiCall('PUT', 'payments/' + id, { dataPagamento: null, valorPago: 0, formaPgto: '', comprovante: null, status: 'pendente', updated_at: now() });
       if (r && r.ok) {
-        p.dataPagamento = ''; p.valorPago = 0; p.status = 'pendente'; p.formaPagamento = ''; p.comprovante = null;
+        p.dataPagamento = null; p.valorPago = 0; p.status = 'pendente'; p.formaPgto = ''; p.comprovante = null;
         ok++;
       }
     } catch(e) {}
@@ -6920,8 +5507,16 @@ let _pdfPreviewName = '';
 
 function previewAnexo(base64Data, fileName) {
   try {
-    _pdfPreviewData = (typeof base64Data === 'string') ? base64Data : (base64Data ? String(base64Data) : '');
+    if (!base64Data || (typeof base64Data === 'string' && base64Data.length < 10)) {
+      mostrarToast('Arquivo sem dados ou corrompido. Tente reenviar o anexo.', 'erro');
+      return;
+    }
+    _pdfPreviewData = (typeof base64Data === 'string') ? base64Data : String(base64Data);
     _pdfPreviewName = fileName || '';
+    if (!_pdfPreviewData.startsWith('data:') && !_pdfPreviewData.startsWith('/9j/') && !_pdfPreviewData.startsWith('JVBER')) {
+      mostrarToast('Formato de arquivo invalido ou corrompido. Tente reenviar o anexo.', 'erro');
+      return;
+    }
     const nameLower = (fileName || '').toLowerCase();
     const isPdfByName = nameLower.endsWith('.pdf');
     const isPdfByContent = !_pdfPreviewData.startsWith('data:image/') && _pdfPreviewData.startsWith('data:');
@@ -7074,49 +5669,16 @@ if (resetToken) {
   if (sessionStorage.getItem('logged_in') === 'true') getCsrfToken();
 }
 
-// Sincronizacao em tempo real: busca do servidor a cada 30 segundos
-let _syncRunning = false;
+// Sincronizacao: carga unica no boot; CRUD direto via API
 let _saveSyncRunning = false;
-let _lastSyncAt = localStorage.getItem('lastSyncAt') || null;
-let _pendingSync = false;
 let _serverOffset = parseInt(localStorage.getItem('serverOffset') || '0');
-let _lastSyncCompletedAt = 0;
-const SYNC_COOLDOWN_MS = 30000;
 function now() { return new Date(Date.now() + _serverOffset).toISOString(); }
-function saveLastSyncAt() { try { localStorage.setItem('lastSyncAt', _lastSyncAt); } catch(e) {} }
 function saveServerOffset() { try { localStorage.setItem('serverOffset', String(_serverOffset)); } catch(e) {} }
-function syncRealtime() {
-  if (!db || sessionStorage.getItem('logged_in') !== 'true' || _syncRunning) return;
-  if (_saveSyncRunning) { console.log('[SYNC-RT] Pulando: salvarContrato esta sincronizando'); return; }
-  if (Date.now() - _lastSyncCompletedAt < SYNC_COOLDOWN_MS) { console.log('[SYNC-RT] Pulando: cooldown ativo'); return; }
-  _syncRunning = true;
-  console.log('[SYNC-RT] Iniciando ciclo de sync...');
-  const indicator = document.getElementById('sync-indicator');
-  if (indicator) { indicator.style.display = 'inline'; indicator.style.color = '#ff0'; indicator.textContent = '● Sincronizando...'; }
-  loadFromServer().then(() => {
-    if (_saveSyncRunning) { console.log('[SYNC-RT] Pulando POST: salvarContrato esta sincronizando'); return; }
-    return syncToServer();
-  }).then((resp) => {
-    _syncRunning = false;
-    _pendingSync = false;
-    _lastSyncCompletedAt = Date.now();
-    console.log('[SYNC-RT] Ciclo concluido');
-    if (indicator) { indicator.style.color = '#8f8'; indicator.textContent = '● Sincronizado'; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
-  }).catch((e) => {
-    _syncRunning = false;
-    _pendingSync = true;
-    console.error('[SYNC-RT] Erro:', e);
-    if (indicator) { indicator.style.color = '#f66'; indicator.textContent = '● Falha sync - retentando...'; }
-  });
-}
-setInterval(syncRealtime, 300000);
-window.addEventListener('focus', () => { if (sessionStorage.getItem('logged_in') === 'true' && !_syncRunning) syncRealtime(); });
-setInterval(() => { if (_pendingSync && !_syncRunning && !_saveSyncRunning) syncRealtime(); }, 30000);
 </script>
 <script>
 (function() {
-  const SUPABASE_URL = 'https://brzzybvjrobkwnamuiat.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJyenp5YnZqcm9ia3duYW11aWF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwODE4MTYsImV4cCI6MjEwNzY1NzgxNn0.C-acKULq36jesU1SDzYF6vBAWswklYGmge4p6OZL_04';
+  const SUPABASE_URL = 'https://vlumaqlnojrzprjxkbjb.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZsdW1hcWxub2pyenByanhrYmpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMTA2MDAsImV4cCI6MjEwODY4NjYwMH0.20AlIWtzWSpAYy12ty0MmFEwccdZ4-bmBslguTAO5DY';
 
   if (!window.supabase || !window.supabase.createClient) {
     console.error('[REALTIME] supabase-js não carregado');
@@ -7129,10 +5691,8 @@ setInterval(() => { if (_pendingSync && !_syncRunning && !_saveSyncRunning) sync
   function onRealtimeChange(payload) {
     clearTimeout(_rtDebounce);
     _rtDebounce = setTimeout(() => {
-      if (Date.now() - _lastSyncCompletedAt < SYNC_COOLDOWN_MS) { console.log('[REALTIME] Pulando: cooldown pos-sync'); return; }
       console.log('[REALTIME] Mudanca detectada:', payload.eventType, payload.table);
       if (typeof _saveSyncRunning !== 'undefined' && _saveSyncRunning) { console.log('[REALTIME] Pulando: save em andamento'); return; }
-      if (typeof _syncRunning !== 'undefined' && _syncRunning) { console.log('[REALTIME] Pulando: sync em andamento'); return; }
       const indicator = document.getElementById('sync-indicator');
       if (indicator) { indicator.style.display = 'inline'; indicator.style.color = '#0af'; indicator.textContent = '● Atualizando...'; }
       loadFromServer().then(() => {
@@ -7140,8 +5700,6 @@ setInterval(() => { if (_pendingSync && !_syncRunning && !_saveSyncRunning) sync
         renderContratos && renderContratos();
         renderPagamentos && renderPagamentos();
         renderDashboard && renderDashboard();
-        renderCertidoes && renderCertidoes();
-        renderLicitacoes && renderLicitacoes();
       }).catch((e) => {
         console.error('[REALTIME] Erro loadFromServer:', e);
         if (indicator) { indicator.style.display = 'none'; }
@@ -7149,7 +5707,7 @@ setInterval(() => { if (_pendingSync && !_syncRunning && !_saveSyncRunning) sync
     }, 3000);
   }
 
-  const tables = ['contracts', 'payments', 'certidoes', 'licitacoes', 'additives', 'users', 'sectors', 'companies', 'destinatarios'];
+  const tables = ['contracts', 'payments', 'additives', 'users', 'sectors', 'companies', 'destinatarios'];
   const channel = client.channel('db-changes');
   tables.forEach(t => {
     channel.on('postgres_changes', { event: '*', schema: 'public', table: t }, onRealtimeChange);

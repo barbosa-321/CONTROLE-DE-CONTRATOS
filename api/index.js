@@ -417,120 +417,6 @@ function montarHtmlContratos(vencidos, grupos, tituloExtra = '') {
   return html
 }
 
-function processCertidoesVencidas(certidoes, hoje, empMap) {
-  const vencidas = []
-  const hj = new Date(hoje)
-  for (const ct of certidoes) {
-    const fv = (ct.data_validade || '').slice(0, 10)
-    const df = new Date(fv)
-    if (isNaN(df)) continue
-    const diff = Math.floor((hj - df) / 86400000)
-    if (diff <= 0) continue
-    const empNome = empMap ? (empMap[ct.empresa_id] || ct.empresa_id || '') : (ct.empresa_id || '')
-    vencidas.push({ id: ct.id, tipo: ct.tipo, empresa: empNome, cnpj: ct.cnpj || '', uf: ct.uf || '', cidade: ct.cidade || '', validade: datefmt(fv), dias: diff })
-  }
-  return vencidas
-}
-
-function processCertidoesAVencer(certidoes, hoje, empMap) {
-  const grupos = { d35: [], d30: [], d15: [], d0_14: [] }
-  const hj = new Date(hoje)
-  for (const ct of certidoes) {
-    const fv = (ct.data_validade || '').slice(0, 10)
-    const df = new Date(fv)
-    if (isNaN(df)) continue
-    const diff = Math.floor((df - hj) / 86400000)
-    if (diff < 0) continue
-    const empNome = empMap ? (empMap[ct.empresa_id] || ct.empresa_id || '') : (ct.empresa_id || '')
-    const info = { id: ct.id, tipo: ct.tipo, empresa: empNome, cnpj: ct.cnpj || '', uf: ct.uf || '', cidade: ct.cidade || '', validade: datefmt(fv), dias: diff }
-    if (diff >= 31 && diff <= 35) grupos.d35.push(info)
-    else if (diff >= 16 && diff <= 30) grupos.d30.push(info)
-    else if (diff === 15) grupos.d15.push(info)
-    else if (diff >= 0 && diff <= 14) grupos.d0_14.push(info)
-  }
-  return grupos
-}
-
-function montarHtmlCertidoes(vencidas, grupos, tituloExtra = '') {
-  let html = ''
-  if (vencidas.length) {
-    html += `<h2 style="color:#c0392b">Certidoes Vencidas${escapeHtml(tituloExtra)}</h2><table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;margin-bottom:20px"><tr style="background:#ffe1e1"><th>Tipo</th><th>Empresa</th><th>CNPJ</th><th>Estado</th><th>Municipio</th><th>Validade</th><th>Dias Vencida</th></tr>`
-    for (const c of vencidas) html += `<tr><td>${escapeHtml(c.tipo)}</td><td>${escapeHtml(c.empresa)}</td><td>${escapeHtml(c.cnpj)}</td><td>${escapeHtml(c.uf)}</td><td>${escapeHtml(c.cidade)}</td><td>${escapeHtml(c.validade)}</td><td>${c.dias} dia(s)</td></tr>`
-    html += '</table>'
-  }
-  const secoes = [
-    ['d35', 'ENTRE 31 E 35 DIAS', '#24527a', '#eef6ff'],
-    ['d30', 'ENTRE 16 E 30 DIAS', '#d4820a', '#fff3cd'],
-    ['d15', 'FALTAM 15 DIAS', '#c0392b', '#ffe1e1'],
-    ['d0_14', 'MENOS DE 15 DIAS', '#b71c1c', '#ffd7d7'],
-  ]
-  for (const [chave, titulo, cor, bg] of secoes) {
-    const grupo = grupos[chave]
-    if (!grupo?.length) continue
-    if (html) html += `<h2 style="color:#1a3c5e">Aviso de Validade${escapeHtml(tituloExtra)}</h2>`
-    html += `<h3 style="color:${cor}">${titulo}</h3><table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;margin-bottom:20px"><tr style="background:${bg}"><th>Tipo</th><th>Empresa</th><th>CNPJ</th><th>Estado</th><th>Municipio</th><th>Validade</th><th>Dias</th></tr>`
-    for (const c of grupo) html += `<tr><td>${escapeHtml(c.tipo)}</td><td>${escapeHtml(c.empresa)}</td><td>${escapeHtml(c.cnpj)}</td><td>${escapeHtml(c.uf)}</td><td>${escapeHtml(c.cidade)}</td><td>${escapeHtml(c.validade)}</td><td>${c.dias} dia(s)</td></tr>`
-    html += '</table>'
-  }
-  return html || `<p style="color:#2e7d52">Nenhuma certidao com alerta pendente.</p>`
-}
-
-function processLicitacoesVencidas(licitacoes, hoje) {
-  const vencidas = []
-  const hj = new Date(hoje)
-  for (const lc of licitacoes) {
-    const fv = (lc.data_fim || '').slice(0, 10)
-    const df = new Date(fv)
-    if (isNaN(df)) continue
-    const diff = Math.floor((hj - df) / 86400000)
-    if (diff <= 0) continue
-    vencidas.push({ id: lc.id, numero: lc.numero_licitacao || '', objeto: lc.objeto || '', empresa: lc.empresa_id || '', dataFim: datefmt(fv), dias: diff })
-  }
-  return vencidas
-}
-
-function processLicitacoesAVencer(licitacoes, hoje) {
-  const grupos = { d35: [], d30: [], d15: [], d0_14: [] }
-  const hj = new Date(hoje)
-  for (const lc of licitacoes) {
-    const fv = (lc.data_fim || '').slice(0, 10)
-    const df = new Date(fv)
-    if (isNaN(df)) continue
-    const diff = Math.floor((df - hj) / 86400000)
-    if (diff < 0) continue
-    const info = { id: lc.id, numero: lc.numero_licitacao || '', objeto: lc.objeto || '', empresa: lc.empresa_id || '', dataFim: datefmt(fv), dias: diff }
-    if (diff >= 31 && diff <= 35) grupos.d35.push(info)
-    else if (diff >= 16 && diff <= 30) grupos.d30.push(info)
-    else if (diff === 15) grupos.d15.push(info)
-    else if (diff >= 0 && diff <= 14) grupos.d0_14.push(info)
-  }
-  return grupos
-}
-
-function montarHtmlLicitacoes(vencidas, grupos, tituloExtra = '') {
-  let html = ''
-  if (vencidas.length) {
-    html += `<h2 style="color:#c0392b">Licitacoes Vencidas${escapeHtml(tituloExtra)}</h2><table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;margin-bottom:20px"><tr style="background:#ffe1e1"><th>Numero</th><th>Objeto</th><th>Empresa</th><th>Data Fim</th><th>Dias</th></tr>`
-    for (const l of vencidas) html += `<tr><td>${escapeHtml(l.numero)}</td><td>${escapeHtml(l.objeto)}</td><td>${escapeHtml(l.empresa)}</td><td>${escapeHtml(l.dataFim)}</td><td>${l.dias} dia(s)</td></tr>`
-    html += '</table>'
-  }
-  const secoes = [
-    ['d35', 'ENTRE 31 E 35 DIAS', '#24527a', '#eef6ff'],
-    ['d30', 'ENTRE 16 E 30 DIAS', '#d4820a', '#fff3cd'],
-    ['d15', 'FALTAM 15 DIAS', '#c0392b', '#ffe1e1'],
-    ['d0_14', 'MENOS DE 15 DIAS', '#b71c1c', '#ffd7d7'],
-  ]
-  for (const [chave, titulo, cor, bg] of secoes) {
-    const grupo = grupos[chave]
-    if (!grupo?.length) continue
-    if (html) html += `<h2 style="color:#1a3c5e">Aviso de Vencimento${escapeHtml(tituloExtra)}</h2>`
-    html += `<h3 style="color:${cor}">${titulo}</h3><table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;margin-bottom:20px"><tr style="background:${bg}"><th>Numero</th><th>Objeto</th><th>Empresa</th><th>Data Fim</th><th>Dias</th></tr>`
-    for (const l of grupo) html += `<tr><td>${escapeHtml(l.numero)}</td><td>${escapeHtml(l.objeto)}</td><td>${escapeHtml(l.empresa)}</td><td>${escapeHtml(l.dataFim)}</td><td>${l.dias} dia(s)</td></tr>`
-    html += '</table>'
-  }
-  return html || `<p style="color:#2e7d52">Nenhuma licitacao com alerta pendente.</p>`
-}
-
 async function enviarEmail(cfg, html, assunto, destinatario) {
   const port = parseInt(cfg.smtp_port) || 465
   const transporter = nodemailer.createTransport({
@@ -639,11 +525,21 @@ export async function vercelHandler(event) {
       }
       const { username, password } = body
       let dbUser = null
+      let dbFalha = null
       try {
         const result = await getSupabase().from('users').select('*').eq('username', username).eq('active', 1).single()
-        dbUser = result.data
+        if (result.error) {
+          // PGRST116 = nenhum registro encontrado (usuario nao existe) — nao e falha de banco
+          if (result.error.code !== 'PGRST116') {
+            dbFalha = result.error.message || String(result.error)
+            console.error('Supabase login query error:', dbFalha)
+          }
+        } else {
+          dbUser = result.data
+        }
       } catch (e) {
-        console.error('Supabase query error:', e.message)
+        dbFalha = e.message || String(e)
+        console.error('Supabase login query error:', dbFalha)
       }
 
       let authenticated = false
@@ -662,6 +558,8 @@ export async function vercelHandler(event) {
             }).then(() => console.log('Admin user saved to Supabase')).catch(e => console.error('Could not persist admin user:', e.message))
           }).catch(() => {})
         }
+      } else if (dbFalha) {
+        return json({ ok: false, erro: 'Banco de dados indisponivel no momento. Tente novamente em instantes.' }, 503)
       } else if (dbUser) {
         authenticated = await checkPassword(password, dbUser.password_hash)
       }
@@ -873,93 +771,6 @@ export async function vercelHandler(event) {
       return json({ ok: true, msg: `${enviados} e-mail(s) enviado(s).${erros.length ? ` Erros: ${erros.join('; ')}` : ''}` })
     }
 
-    // ─── ENVIAR ALERTAS CERTIDOES ────────────────────────────────────────
-    if (route === 'enviar-alertas-certidoes') {
-      if (httpMethod !== 'POST') return json({ ok: false, erro: 'Metodo nao permitido' }, 405)
-      const authErr = requireAuth(user)
-      if (authErr) return authErr
-      if (!validateCsrf(user, body.csrf_token)) {
-        return json({ ok: false, erro: 'CSRF invalido' }, 403)
-      }
-      const cfg = await getEmailConfig()
-      if (!cfg.email_remetente || !cfg.email_senha) {
-        return json({ ok: false, erro: 'Configure o e-mail primeiro.' })
-      }
-      const destinatariosData = body.destinatarios || []
-      if (!destinatariosData.length) {
-        return json({ ok: true, msg: 'Nenhum destinatario cadastrado para enviar alertas.' })
-      }
-      const { data: certidoes } = await getSupabase().from('certidoes').select('*')
-      const { data: empresas } = await getSupabase().from('companies').select('id, nome')
-      const empMap = {}
-      for (const e of (empresas || [])) empMap[e.id] = e.nome || ''
-      const hj = today()
-
-      let enviados = 0, erros = []
-      for (const dest of destinatariosData) {
-        const email = (dest.email || '').trim()
-        if (!email) continue
-        const empresaIds = dest.empresaIds || []
-        const empIdsSet = empresaIds.length ? new Set(empresaIds) : null
-        const empCertidoes = (certidoes || []).filter(ct => !empIdsSet || empIdsSet.has(ct.empresa_id))
-        const vencidas = processCertidoesVencidas(empCertidoes, hj, empMap)
-        const grupos = processCertidoesAVencer(empCertidoes, hj, empMap)
-        if (!vencidas.length && !Object.values(grupos).some(g => g.length)) continue
-        const rotulo = dest.nome ? ` - ${dest.nome}` : ''
-        const htmlBody = `<html><body style="font-family:Arial,sans-serif;padding:20px">${montarHtmlCertidoes(vencidas, grupos, rotulo)}<p style="color:#666;font-size:12px">Gerado em ${new Date().toLocaleString('pt-BR')}</p></body></html>`
-        try {
-          await enviarEmail(cfg, htmlBody, `Alertas de Certidoes${rotulo} - ${hj}`, email)
-          enviados++
-        } catch (e) {
-          erros.push(`${email}: ${e.message}`)
-        }
-      }
-      if (!enviados && !erros.length) return json({ ok: true, msg: 'Nenhuma certidao pendente para os destinatarios cadastrados.' })
-      return json({ ok: true, msg: `${enviados} e-mail(s) enviado(s).${erros.length ? ` Erros: ${erros.join('; ')}` : ''}` })
-    }
-
-    // ─── ENVIAR ALERTAS LICITACOES ──────────────────────────────────────
-    if (route === 'enviar-alertas-licitacoes') {
-      if (httpMethod !== 'POST') return json({ ok: false, erro: 'Metodo nao permitido' }, 405)
-      const authErr = requireAuth(user)
-      if (authErr) return authErr
-      if (!validateCsrf(user, body.csrf_token)) {
-        return json({ ok: false, erro: 'CSRF invalido' }, 403)
-      }
-      const cfg = await getEmailConfig()
-      if (!cfg.email_remetente || !cfg.email_senha) {
-        return json({ ok: false, erro: 'Configure o e-mail primeiro.' })
-      }
-      const destinatariosData = body.destinatarios || []
-      if (!destinatariosData.length) {
-        return json({ ok: true, msg: 'Nenhum destinatario cadastrado para enviar alertas.' })
-      }
-      const { data: licitacoes } = await getSupabase().from('licitacoes').select('*')
-      const hj = today()
-
-      let enviados = 0, erros = []
-      for (const dest of destinatariosData) {
-        const email = (dest.email || '').trim()
-        if (!email) continue
-        const empresaIds = dest.empresaIds || []
-        const empIdsSet = empresaIds.length ? new Set(empresaIds) : null
-        const empLicitacoes = (licitacoes || []).filter(lc => !empIdsSet || empIdsSet.has(lc.empresa_id))
-        const vencidas = processLicitacoesVencidas(empLicitacoes, hj)
-        const grupos = processLicitacoesAVencer(empLicitacoes, hj)
-        if (!vencidas.length && !Object.values(grupos).some(g => g.length)) continue
-        const rotulo = dest.nome ? ` - ${dest.nome}` : ''
-        const htmlBody = `<html><body style="font-family:Arial,sans-serif;padding:20px">${montarHtmlLicitacoes(vencidas, grupos, rotulo)}<p style="color:#666;font-size:12px">Gerado em ${new Date().toLocaleString('pt-BR')}</p></body></html>`
-        try {
-          await enviarEmail(cfg, htmlBody, `Alertas de Licitacoes${rotulo} - ${hj}`, email)
-          enviados++
-        } catch (e) {
-          erros.push(`${email}: ${e.message}`)
-        }
-      }
-      if (!enviados && !erros.length) return json({ ok: true, msg: 'Nenhuma licitacao pendente para os destinatarios cadastrados.' })
-      return json({ ok: true, msg: `${enviados} e-mail(s) enviado(s).${erros.length ? ` Erros: ${erros.join('; ')}` : ''}` })
-    }
-
     // ─── USERS ───────────────────────────────────────────────────────────
     if (route === 'users' && httpMethod === 'GET') {
       const authErr = requireAuth(user)
@@ -1066,12 +877,21 @@ export async function vercelHandler(event) {
       const nome = (body.nome || '').trim()
       if (!nome) return json({ ok: false, erro: 'Nome da empresa e obrigatorio.' }, 400)
       const cnpj = (body.cnpj || '').trim()
+      const uf = (body.uf || '').trim()
       const { data: existing } = await getSupabase().from('companies').select('id').eq('id', cid).single()
+      if (!existing && cnpj) {
+        const cnpjNumeros = cnpj.replace(/\D/g, '')
+        if (cnpjNumeros.length === 14 || cnpjNumeros.length === 11) {
+          const { data: dupRows } = await getSupabase().from('companies').select('id, nome, cnpj')
+          const dup = (dupRows || []).find(r => (r.cnpj || '').replace(/\D/g, '') === cnpjNumeros)
+          if (dup) return json({ ok: false, erro: 'CNPJ ja cadastrado na empresa "' + dup.nome + '".' }, 400)
+        }
+      }
       const active = body.active !== undefined ? (body.active ? 1 : 0) : 1
       if (existing) {
-        await getSupabase().from('companies').update({ nome, cnpj, active }).eq('id', cid)
+        await getSupabase().from('companies').update({ nome, cnpj, uf, active }).eq('id', cid)
       } else {
-        await getSupabase().from('companies').insert({ id: cid, nome, cnpj, active })
+        await getSupabase().from('companies').insert({ id: cid, nome, cnpj, uf, active })
       }
       return json({ ok: true, id: cid })
     }
@@ -1086,6 +906,7 @@ export async function vercelHandler(event) {
       if (body.active !== undefined) upd.active = body.active ? 1 : 0
       if (body.nome !== undefined) upd.nome = (body.nome || '').trim()
       if (body.cnpj !== undefined) upd.cnpj = (body.cnpj || '').trim()
+      if (body.uf !== undefined) upd.uf = (body.uf || '').trim()
       await getSupabase().from('companies').update(upd).eq('id', parts[1])
       return json({ ok: true })
     }
@@ -1329,9 +1150,41 @@ export async function vercelHandler(event) {
         if (pg.diaVenc !== undefined) upd.dia_vencimento = pg.diaVenc || null
       }
       if (body.arquivo !== undefined) upd.arquivo_contrato = body.arquivo ? JSON.stringify(body.arquivo) : null
-      upd.updated_at = new Date().toISOString()
+      if (body.deleted_at !== undefined) { upd.active = 0 }
+      upd.updated_at = body.updated_at || new Date().toISOString()
       const { error: updErr } = await getSupabase().from('contracts').update(upd).eq('id', parts[1])
       if (updErr) { console.error('[CONTRACT-PUT] Supabase error:', updErr.message); return json({ ok: false, erro: updErr.message }, 500) }
+      if (body.aditivos !== undefined) {
+        const existingAdd = await getSupabase().from('additives').select('id, deleted_at').eq('contract_id', parts[1])
+        const existingIds = new Set((existingAdd.data || []).map(a => a.id))
+        const incomingIds = new Set((body.aditivos || []).map(a => a.id))
+        for (const a of (body.aditivos || [])) {
+          const avals = {
+            contract_id: parts[1], numero: (a.numero || '').trim(),
+            data_aditivo: (a.data || '').trim(), tipo: (a.tipo || '').trim(),
+            nova_data_fim: (a.novaData || '').trim() || null,
+            acrescimo_valor: safeFloat(a.novoValor),
+            descricao: (a.objeto || '').trim(),
+            arquivo_contrato: a.arquivo ? JSON.stringify(a.arquivo) : null,
+            resumo: a.resumo || null,
+            updated_at: a.updated_at || new Date().toISOString(),
+            deleted_at: a.deleted_at || null
+          }
+          if (existingIds.has(a.id)) {
+            await getSupabase().from('additives').update(avals).eq('id', a.id)
+          } else {
+            avals.id = a.id
+            avals.created_by = user.id
+            avals.created_at = a.criadoEm || new Date().toISOString()
+            await getSupabase().from('additives').insert(avals)
+          }
+        }
+        for (const ex of (existingAdd.data || [])) {
+          if (!incomingIds.has(ex.id)) {
+            await getSupabase().from('additives').update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', ex.id)
+          }
+        }
+      }
       console.log('[CONTRACT-PUT] OK id:', parts[1], 'fields:', Object.keys(upd).join(','))
       await audit(user.id, 'UPDATE', 'contract', parts[1], `Contrato ${parts[1]} atualizado`)
       return json({ ok: true })
@@ -1397,7 +1250,7 @@ export async function vercelHandler(event) {
       if (body.obs !== undefined) upd.obs = (body.obs || '').trim()
       if (body.comprovante !== undefined) upd.comprovante = body.comprovante ? JSON.stringify(body.comprovante) : null
       if (body.deleted_at !== undefined) upd.deleted_at = body.deleted_at || null
-      upd.updated_at = new Date().toISOString()
+      upd.updated_at = body.updated_at || new Date().toISOString()
       await getSupabase().from('payments').update(upd).eq('id', parts[1])
       await audit(user.id, 'UPDATE', 'payment', parts[1], `Pagamento ${parts[1]} atualizado`)
       return json({ ok: true })
@@ -1469,6 +1322,64 @@ export async function vercelHandler(event) {
       return json({ ok: true })
     }
 
+    // ─── DESTINATARIOS POST (create) ─────────────────────────────────────
+    if (route === 'destinatarios' && httpMethod === 'POST') {
+      const authErr = requireAuth(user)
+      if (authErr) return authErr
+      if (!validateCsrf(user, body.csrf_token)) {
+        return json({ ok: false, erro: 'CSRF invalido' }, 403)
+      }
+      const did = body.id || crypto.randomUUID()
+      const { data: existing } = await getSupabase().from('destinatarios').select('id').eq('id', did).single()
+      if (existing) return json({ ok: false, erro: 'Destinatario ja existe.' }, 400)
+      const vals = {
+        id: did,
+        email: (body.email || '').trim(),
+        nome: (body.nome || '').trim(),
+        empresa_ids: JSON.stringify(body.empresaIds || []),
+        setores: JSON.stringify(body.setores || []),
+        alertas: JSON.stringify(body.alertas || []),
+        criado_em: body.criadoEm || new Date().toISOString(),
+        updated_at: body.updated_at || new Date().toISOString()
+      }
+      const { error } = await getSupabase().from('destinatarios').insert(vals)
+      if (error) return json({ ok: false, erro: error.message }, 500)
+      await audit(user.id, 'CREATE', 'destinatario', did, `Destinatario ${vals.email} criado`)
+      return json({ ok: true, id: did })
+    }
+
+    // ─── DESTINATARIOS PUT (update) ──────────────────────────────────────
+    if (parts[0] === 'destinatarios' && parts[1] && httpMethod === 'PUT') {
+      const authErr = requireAuth(user)
+      if (authErr) return authErr
+      if (!validateCsrf(user, body.csrf_token)) {
+        return json({ ok: false, erro: 'CSRF invalido' }, 403)
+      }
+      const upd = {}
+      if (body.email !== undefined) upd.email = (body.email || '').trim()
+      if (body.nome !== undefined) upd.nome = (body.nome || '').trim()
+      if (body.empresaIds !== undefined) upd.empresa_ids = JSON.stringify(body.empresaIds || [])
+      if (body.setores !== undefined) upd.setores = JSON.stringify(body.setores || [])
+      if (body.alertas !== undefined) upd.alertas = JSON.stringify(body.alertas || [])
+      if (body.deleted_at !== undefined) upd.deleted_at = body.deleted_at || null
+      upd.updated_at = body.updated_at || new Date().toISOString()
+      await getSupabase().from('destinatarios').update(upd).eq('id', parts[1])
+      await audit(user.id, 'UPDATE', 'destinatario', parts[1], `Destinatario ${parts[1]} atualizado`)
+      return json({ ok: true })
+    }
+
+    // ─── DESTINATARIOS DELETE ────────────────────────────────────────────
+    if (parts[0] === 'destinatarios' && parts[1] && httpMethod === 'DELETE') {
+      const authErr = requireAuth(user)
+      if (authErr) return authErr
+      if (!validateCsrf(user, body.csrf_token)) {
+        return json({ ok: false, erro: 'CSRF invalido' }, 403)
+      }
+      await getSupabase().from('destinatarios').delete().eq('id', parts[1])
+      await audit(user.id, 'DELETE', 'destinatario', parts[1], `Destinatario ${parts[1]} excluido`)
+      return json({ ok: true })
+    }
+
     // ─── SYNC ────────────────────────────────────────────────────────────
     if (route === 'sync') {
       if (httpMethod === 'GET') {
@@ -1485,8 +1396,6 @@ export async function vercelHandler(event) {
         const CONTRACT_COLS = 'id,numero,fornecedor,cnpj,objeto,valor_total,inicio,fim,tem_parcelas,qtd_parcelas,valor_parcela,dia_vencimento,responsavel,setor,obs,tipo,empresa_id,active,forma_pagamento,created_by,created_at,updated_at,arquivo_contrato'
         const PAYMENT_COLS = 'id,contract_id,descricao,vencimento,valor,contrato_num,data_pagamento,valor_pago,forma_pagamento,status,obs,created_by,paid_by,created_at,updated_at,deleted_at,comprovante'
         const ADDITIVE_COLS = 'id,contract_id,numero,data_aditivo,tipo,nova_data_fim,acrescimo_valor,descricao,created_by,created_at,updated_at,deleted_at,arquivo_contrato'
-        const CERTIDAO_COLS = 'id,empresa_id,cnpj,uf,cidade,tipo,data_emissao,data_validade,status,arquivo_nome,arquivo_dados,observacoes,criado_em,updated_at,deleted_at'
-        const LICITACAO_COLS = 'id,empresa_id,numero_licitacao,edital,nome_licitacao,cnpj,objeto,contrato_id,valor,data_homologacao,data_inicio,data_fim,status,observacoes,criado_em,updated_at,deleted_at'
         const DEST_COLS = 'id,email,nome,empresa_ids,setores,alertas,criado_em,updated_at,deleted_at'
         const sq = (tbl, cols) => {
           let q = getSupabase().from(tbl).select(cols)
@@ -1501,8 +1410,6 @@ export async function vercelHandler(event) {
           let q = getSupabase().from('contracts').select(CONTRACT_COLS)
           if (since) {
             q = q.gt('updated_at', since)
-          } else {
-            q = q.eq('active', 1)
           }
           return q
         }
@@ -1515,8 +1422,6 @@ export async function vercelHandler(event) {
           ['additives', () => sq('additives', ADDITIVE_COLS).order('created_at')],
           ['companies', () => getSupabase().from('companies').select('*').order('nome')],
           ['destinatarios', () => sq('destinatarios', DEST_COLS).order('criado_em')],
-          ['certidoes', () => sq('certidoes', CERTIDAO_COLS).order('criado_em', { ascending: false })],
-          ['licitacoes', () => sq('licitacoes', LICITACAO_COLS).order('criado_em', { ascending: false })],
           ['sectors', () => getSupabase().from('sectors').select('*').order('nome')],
           ['user_setores', () => getSupabase().from('user_setores').select('*')],
         ]
@@ -1528,10 +1433,10 @@ export async function vercelHandler(event) {
           results.push(r)
         }
         console.log('[SYNC-GET] Total queries:', Date.now() - t0, 'ms')
-        const [contratos, pagamentos, usuarios, aditivos, empresas, destinatarios, certidoes, licitacoes, sectors, userSetores] = results
+        const [contratos, pagamentos, usuarios, aditivos, empresas, destinatarios, sectors, userSetores] = results
         const resp = {
           contratos, pagamentos, usuarios, aditivos, empresas,
-          destinatarios, certidoes, licitacoes, sectors, user_setores: userSetores,
+          destinatarios, sectors, user_setores: userSetores,
           server_now: new Date().toISOString()
         }
         const respSize = Math.round(JSON.stringify(resp).length / 1024)
@@ -1777,113 +1682,6 @@ export async function vercelHandler(event) {
           }
         }
 
-        for (const ct of (body.certidoes || [])) {
-          const ctid = (ct.id || '').trim()
-          const tipo = (ct.tipo || '').trim()
-          if (!ctid || !tipo) { importados.ignorados++; continue }
-          try {
-            let arquivoDadosStr = null
-            let arquivoNomeStr = ''
-            if (ct.arquivo) {
-              const tmp = JSON.stringify(ct.arquivo)
-              if (tmp.length <= MAX_BASE64) {
-                arquivoDadosStr = tmp
-                arquivoNomeStr = ct.arquivo.name || ''
-              }
-            }
-            const incomingUpdatedCt = ct.updated_at || ct.criadoEm || new Date().toISOString()
-            const incomingDeletedCt = ct.deleted_at || null
-            const { data: existing } = await getSupabase().from('certidoes').select('id, updated_at, deleted_at').eq('id', ctid).single()
-            const vals = {
-              empresa_id: ct.empresaId || '',
-              cnpj: (ct.cnpj || '').trim(),
-              uf: (ct.uf || '').trim(),
-              cidade: (ct.cidade || '').trim(),
-              tipo, data_emissao: ct.dataEmissao || '',
-              data_validade: ct.dataValidade || '', status: ct.status || 'pendente',
-              observacoes: (ct.obs || '').trim(),
-              updated_at: incomingUpdatedCt
-            }
-            if (arquivoNomeStr) vals.arquivo_nome = arquivoNomeStr
-            if (arquivoDadosStr) vals.arquivo_dados = arquivoDadosStr
-            if (existing) {
-              if (existing.deleted_at) {
-                importados.certidoes = (importados.certidoes || 0) + 1
-                continue
-              }
-              const existingUpdatedCt = existing.updated_at || ''
-              if (incomingUpdatedCt <= existingUpdatedCt && !incomingDeletedCt) {
-                importados.certidoes = (importados.certidoes || 0) + 1
-                continue
-              }
-              if (incomingDeletedCt) {
-                await getSupabase().from('certidoes').update({ deleted_at: incomingDeletedCt, updated_at: incomingUpdatedCt }).eq('id', ctid)
-              } else {
-                const { error } = await getSupabase().from('certidoes').update(vals).eq('id', ctid)
-                if (error) { await audit(user.id, 'SYNC_ERROR', 'certidoes', ctid, `Update: ${error.message}`); importados.ignorados++; continue }
-              }
-            } else {
-              if (incomingDeletedCt) { importados.certidoes = (importados.certidoes || 0) + 1; continue }
-              const { error } = await getSupabase().from('certidoes').insert({ id: ctid, ...vals })
-              if (error) { await audit(user.id, 'SYNC_ERROR', 'certidoes', ctid, `Insert: ${error.message}`); importados.ignorados++; continue }
-            }
-            importados.certidoes = (importados.certidoes || 0) + 1
-          } catch (e) {
-            await audit(user.id, 'SYNC_ERROR', 'certidoes', ctid, e.message)
-            importados.ignorados++
-          }
-        }
-
-        for (const lc of (body.licitacoes || [])) {
-          const lcid = (lc.id || '').trim()
-          const numero = (lc.numeroLicitacao || '').trim()
-          if (!lcid || !numero) { importados.ignorados++; continue }
-          try {
-            const incomingUpdatedLc = lc.updated_at || lc.criadoEm || new Date().toISOString()
-            const incomingDeletedLc = lc.deleted_at || null
-            const { data: existing } = await getSupabase().from('licitacoes').select('id, updated_at, deleted_at').eq('id', lcid).single()
-            const arquivos = []
-            if (lc.arquivoEdital) arquivos.push({ ...lc.arquivoEdital, tipo: 'edital' })
-            if (lc.arquivoContrato) arquivos.push({ ...lc.arquivoContrato, tipo: 'contrato' })
-            const vals = {
-              numero_licitacao: numero, edital: (lc.edital || '').trim(),
-              objeto: (lc.objeto || '').trim(), empresa_id: lc.empresaId || '',
-              contrato_id: lc.contratoId || '', valor: safeFloat(lc.valor),
-              data_homologacao: lc.dataHomologacao || '',
-              data_inicio: lc.dataInicio || '', data_fim: lc.dataFim || '',
-              status: lc.status || 'em_andamento',
-              observacoes: (lc.obs || '').trim(),
-              updated_at: incomingUpdatedLc
-            }
-            if (arquivos.length > 0) vals.arquivos = JSON.stringify(arquivos)
-            if (existing) {
-              if (existing.deleted_at) {
-                importados.licitacoes = (importados.licitacoes || 0) + 1
-                continue
-              }
-              const existingUpdatedLc = existing.updated_at || ''
-              if (incomingUpdatedLc <= existingUpdatedLc && !incomingDeletedLc) {
-                importados.licitacoes = (importados.licitacoes || 0) + 1
-                continue
-              }
-              if (incomingDeletedLc) {
-                await getSupabase().from('licitacoes').update({ deleted_at: incomingDeletedLc, updated_at: incomingUpdatedLc }).eq('id', lcid)
-              } else {
-                const { error } = await getSupabase().from('licitacoes').update(vals).eq('id', lcid)
-                if (error) { await audit(user.id, 'SYNC_ERROR', 'licitacoes', lcid, error.message); importados.ignorados++; continue }
-              }
-            } else {
-              if (incomingDeletedLc) { importados.licitacoes = (importados.licitacoes || 0) + 1; continue }
-              const { error } = await getSupabase().from('licitacoes').insert({ id: lcid, ...vals })
-              if (error) { await audit(user.id, 'SYNC_ERROR', 'licitacoes', lcid, error.message); importados.ignorados++; continue }
-            }
-            importados.licitacoes = (importados.licitacoes || 0) + 1
-          } catch (e) {
-            await audit(user.id, 'SYNC_ERROR', 'licitacoes', lcid, e.message)
-            importados.ignorados++
-          }
-        }
-
         await audit(user.id, 'SYNC', 'system', '', `Sincronizacao concluida: ${JSON.stringify(importados)}`)
         return json({ ok: true, importados })
       }
@@ -1920,148 +1718,6 @@ export async function vercelHandler(event) {
       return json({ ok: true, resposta: respostaOffline(pergunta) })
     }
 
-    // ─── CERTIDOES ─────────────────────────────────────────────────────────
-    if (route === 'certidoes' && httpMethod === 'GET') {
-      const authErr = requireAuth(user)
-      if (authErr) return authErr
-      const { data } = await getSupabase().from('certidoes').select('*').order('criado_em', { ascending: false })
-      return json(data || [])
-    }
-
-    if (route === 'certidoes' && httpMethod === 'POST') {
-      const authErr = requireAuth(user)
-      if (authErr) return authErr
-      if (!validateCsrf(user, body.csrf_token)) {
-        return json({ ok: false, erro: 'CSRF invalido' }, 403)
-      }
-      const cid = body.id || crypto.randomUUID()
-      const empresaId = (body.empresa_id || '').trim()
-      const tipo = (body.tipo || '').trim()
-      if (!empresaId || !tipo) return json({ ok: false, erro: 'Empresa e tipo sao obrigatorios.' }, 400)
-      const { error } = await getSupabase().from('certidoes').insert({
-        id: cid, empresa_id: empresaId,
-        cnpj: (body.cnpj || '').trim(),
-        uf: (body.uf || '').trim(),
-        cidade: (body.cidade || '').trim(),
-        tipo,
-        data_emissao: body.data_emissao || '',
-        data_validade: body.data_validade || '',
-        status: body.status || 'pendente',
-        arquivo_nome: body.arquivo_nome || '',
-        arquivo_dados: body.arquivo_dados || '',
-        observacoes: (body.obs || '').trim()
-      })
-      if (error) return json({ ok: false, erro: error.message }, 500)
-      await audit(user.id, 'CREATE', 'certidao', cid, `Certidao ${tipo} criada`)
-      return json({ ok: true, id: cid })
-    }
-
-    if (parts[0] === 'certidoes' && parts[1] && httpMethod === 'PUT') {
-      const authErr = requireAuth(user)
-      if (authErr) return authErr
-      if (!validateCsrf(user, body.csrf_token)) {
-        return json({ ok: false, erro: 'CSRF invalido' }, 403)
-      }
-      const upd = {}
-      if (body.empresa_id !== undefined) upd.empresa_id = body.empresa_id
-      if (body.cnpj !== undefined) upd.cnpj = (body.cnpj || '').trim()
-      if (body.uf !== undefined) upd.uf = (body.uf || '').trim()
-      if (body.cidade !== undefined) upd.cidade = (body.cidade || '').trim()
-      if (body.tipo !== undefined) upd.tipo = body.tipo
-      if (body.data_emissao !== undefined) upd.data_emissao = body.data_emissao
-      if (body.data_validade !== undefined) upd.data_validade = body.data_validade
-      if (body.status !== undefined) upd.status = body.status
-      if (body.arquivo_nome !== undefined) upd.arquivo_nome = body.arquivo_nome
-      if (body.arquivo_dados !== undefined) upd.arquivo_dados = body.arquivo_dados
-      if (body.obs !== undefined) upd.observacoes = body.obs
-      if (body.deleted_at !== undefined) upd.deleted_at = body.deleted_at || null
-      upd.updated_at = new Date().toISOString()
-      const { error } = await getSupabase().from('certidoes').update(upd).eq('id', parts[1])
-      if (error) return json({ ok: false, erro: error.message }, 500)
-      await audit(user.id, 'UPDATE', 'certidao', parts[1], `Certidao atualizada`)
-      return json({ ok: true })
-    }
-
-    if (parts[0] === 'certidoes' && parts[1] && httpMethod === 'DELETE') {
-      const authErr = requireAuth(user)
-      if (authErr) return authErr
-      if (!validateCsrf(user, body.csrf_token)) {
-        return json({ ok: false, erro: 'CSRF invalido' }, 403)
-      }
-      await getSupabase().from('certidoes').delete().eq('id', parts[1])
-      await audit(user.id, 'DELETE', 'certidao', parts[1], `Certidao excluida`)
-      return json({ ok: true })
-    }
-
-    // ─── LICITACOES ────────────────────────────────────────────────────────
-    if (route === 'licitacoes' && httpMethod === 'GET') {
-      const authErr = requireAuth(user)
-      if (authErr) return authErr
-      const { data } = await getSupabase().from('licitacoes').select('*').order('criado_em', { ascending: false })
-      return json(data || [])
-    }
-
-    if (route === 'licitacoes' && httpMethod === 'POST') {
-      const authErr = requireAuth(user)
-      if (authErr) return authErr
-      if (!validateCsrf(user, body.csrf_token)) {
-        return json({ ok: false, erro: 'CSRF invalido' }, 403)
-      }
-      const lid = body.id || crypto.randomUUID()
-      const numero = (body.numero_licitacao || '').trim()
-      const objeto = (body.objeto || '').trim()
-      if (!numero || !objeto) return json({ ok: false, erro: 'Numero da licitacao e objeto sao obrigatorios.' }, 400)
-      const { error } = await getSupabase().from('licitacoes').insert({
-        id: lid, numero_licitacao: numero, edital: (body.edital || '').trim(),
-        objeto, empresa_id: body.empresa_id || '',
-        contrato_id: body.contrato_id || '', valor: safeFloat(body.valor),
-        data_homologacao: body.data_homologacao || '',
-        data_inicio: body.data_inicio || '', data_fim: body.data_fim || '',
-        status: body.status || 'em_andamento',
-        arquivos: body.arquivos || '[]',
-        observacoes: (body.obs || '').trim()
-      })
-      if (error) return json({ ok: false, erro: error.message }, 500)
-      await audit(user.id, 'CREATE', 'licitacao', lid, `Licitacao ${numero} criada`)
-      return json({ ok: true, id: lid })
-    }
-
-    if (parts[0] === 'licitacoes' && parts[1] && httpMethod === 'PUT') {
-      const authErr = requireAuth(user)
-      if (authErr) return authErr
-      if (!validateCsrf(user, body.csrf_token)) {
-        return json({ ok: false, erro: 'CSRF invalido' }, 403)
-      }
-      const upd = { updated_at: new Date().toISOString() }
-      if (body.numero_licitacao !== undefined) upd.numero_licitacao = body.numero_licitacao
-      if (body.edital !== undefined) upd.edital = body.edital
-      if (body.objeto !== undefined) upd.objeto = body.objeto
-      if (body.empresa_id !== undefined) upd.empresa_id = body.empresa_id
-      if (body.contrato_id !== undefined) upd.contrato_id = body.contrato_id
-      if (body.valor !== undefined) upd.valor = safeFloat(body.valor)
-      if (body.data_homologacao !== undefined) upd.data_homologacao = body.data_homologacao
-      if (body.data_inicio !== undefined) upd.data_inicio = body.data_inicio
-      if (body.data_fim !== undefined) upd.data_fim = body.data_fim
-      if (body.status !== undefined) upd.status = body.status
-      if (body.arquivos !== undefined) upd.arquivos = body.arquivos
-      if (body.obs !== undefined) upd.observacoes = body.obs
-      const { error } = await getSupabase().from('licitacoes').update(upd).eq('id', parts[1])
-      if (error) return json({ ok: false, erro: error.message }, 500)
-      await audit(user.id, 'UPDATE', 'licitacao', parts[1], `Licitacao atualizada`)
-      return json({ ok: true })
-    }
-
-    if (parts[0] === 'licitacoes' && parts[1] && httpMethod === 'DELETE') {
-      const authErr = requireAuth(user)
-      if (authErr) return authErr
-      if (!validateCsrf(user, body.csrf_token)) {
-        return json({ ok: false, erro: 'CSRF invalido' }, 403)
-      }
-      await getSupabase().from('licitacoes').delete().eq('id', parts[1])
-      await audit(user.id, 'DELETE', 'licitacao', parts[1], `Licitacao excluida`)
-      return json({ ok: true })
-    }
-
     // ─── CIDADES ───────────────────────────────────────────────────────────
     if (route === 'cidades' && httpMethod === 'GET') {
       const cidades = {"AC":["Acrelândia","Assis Brasil","Brasileia","Bujari","Capixaba","Cruzeiro do Sul","Epitaciolândia","Feijó","Jordão","Mâncio Lima","Manoel Urbano","Marechal Thaumaturgo","Plácido de Castro","Porto Acre","Porto Walter","Sena Madureira","Tarauacá"],"AL":["Arapiraca","Atalaia","Barreira dos Lamas","Maceió","Marechal Deodoro","Penedo","Palmeira dos Índios","Rio Largo","São Miguel dos Campos","União dos Palmares"],"AM":["Manaus","Parintins","Manacapuru","Coari","Itacoatiara","Tefé","Maués","São Gabriel da Cachoeira","Humaitá","Tabatinga"],"AP":["Macapá","Santana","Laranjal do Jari","Oiapoque","Mazagão","Tartarugalzinho","Vitória do Jari","Porto Grande","Calçoene","Pedra Branca do Amapari"],"BA":["Salvador","Feira de Santana","Vitória da Conquista","Camaçari","Itabuna","Juazeiro","Lauro de Freitas","Ilhéus","Jequié","Teixeira de Freitas","Barreiras","Alagoinhas","Porto Seguro","Simões Filho","Paulo Afonso","Eunápolis","Santo Antônio de Jesus","Valença","Candeias","Guanambi","Jaçanã","Barra","Luís Eduardo Magalhães","Bom Jesus da Lapa","Brumado","Crateús","Irecê"],"CE":["Fortaleza","Caucaia","Juazeiro do Norte","Maracanaú","Sobral","Crato","Itapipoca","Maranguape","Iguatu","Quixadá","Pacatuba","Aquiraz","Canindé","Guaraciaba do Norte","Tianguá","Sobral"],"DF":["Brasília","Águas Claras","Ceilândia","Taguatinga","Samambaia","Plano Piloto","Planaltina","Recanto das Emas","Santa Maria","São Sebastião","Park Way","Núcleo Bandeirante","Gama","Guará","Cruzeiro","Sobradinho"],"ES":["Vitória","Vila Velha","Serra","Cariacica","Linhares","Cachoeiro de Itapemirim","Aracruz","São Mateus","Colatina","Guarapari","Cariacica","Marechal Floriano","Santa Teresa","São Gabriel da Palha","Nova Venécia"],"GO":["Goiânia","Aparecida de Goiânia","Anápolis","Rio Verde","Luziânia","Águas Lindas de Goiás","Formosa","Novo Gama","Itumbiara","Senador Canedo","Catalão","Jataí","Planaltina","Valparaíso de Goiás","Trindade","Ipameri"],"MA":["São Luís","Imperatriz","São José de Ribamar","Timon","Caxias","Codó","Bacabal","Balsas","Timon","Santa Inês","Paço do Lumiar","Pacuí","Açailândia","Pindaré Mirim","Chapadinha","Barreirinhas","Raposa","Alcântara","Santa Maria","Pirapemas"],"MG":["Belo Horizonte","Uberlândia","Contagem","Juiz de Fora","Betim","Montes Claros","Ribeirão das Neves","Uberaba","Governador Valadares","Ipatinga","Sete Lagoas","Divinópolis","Santa Luzia","Poços de Caldas","Patos de Minas","Teófilo Otoni","Pouso Alegre","Barbacena","Sabará","Varginha","Viçosa","Lavras","Itabira","Três Corações","Alfenas"],"MS":["Campo Grande","Dourados","Três Lagoas","Corumbá","Ponta Porã","Naviraí","Nova Andradina","Aquidauana","Sidrolândia","Maracaju","Nova Alvorada do Sul","Angélica","Iguatemi","Deodápolis","Juti"],"MT":["Cuiabá","Várzea Grande","Rondonópolis","Sinop","Sorriso","Lucas do Rio Verde","Tangará da Serra","Cáceres","Barra do Garças","Primavera do Leste","Barra do Bugres","Nobres","Campo Verde","Alta Floresta","Colíder","Guarantã do Norte","Nova Mutum","Canarana","Querência"],"PA":["Belém","Ananindeua","Santarém","Marabá","Castanhal","Parauapebas","Abaetetuba","Cametá","Marituba","Bragança","Altamira","Paragominas","Tucuruí","Tailândia","Redenção","São Félix do Xingu","Xinguara","Breves","Oriximiná","Juruti"],"PB":["João Pessoa","Campina Grande","Santa Rita","Patos","Bayeux","Sousa","Cajazeiras","Cabedelo","Guarabira","Sapé","Catolé do Rocha","São Bento","Itabaiana","Queimadas","Nova Cruz","Esperança","Lagoa Seca","Alagoa Grande","Pombal"],"PE":["Recife","Jaboatão dos Guararapes","Olinda","Caruaru","Petrolina","Paulista","Cabo de Santo Agostinho","Camaragibe","Vitória de Santo Antão","Igarassu","São Lourenço da Mata","Abreu e Lima","Sirinhaém","Catende","Palmares","Goiana","Lagoa do Itaenga","São José do Egito","Belo Jardim","Garanhuns","Bezerros","Salgueiro","Ouricuri","Flores","Surubim"],"PI":["Teresina","Parnaíba","Picos","Piripiri","Floriano","Campo Maior","Barras","União","Altos","José de Freitas","São Raimundo Nonato","Esperantina","Codó","Lagoa Alegre","Miguel Alves"],"PR":["Curitiba","Londrina","Maringá","Ponta Grossa","Cascavel","São José dos Pinhais","Foz do Iguaçu","Colombo","Guarapuava","Paranaguá","Araucária","Toledo","Apucarana","Pinhais","Campo Largo","Ampére","Almirante Tamandaré","Camaratégí","Umuarama","Chopinzinho","Telemaco Borba","Califórnia","Cruzeiro do Oeste","São Mateus do Sul"],"RJ":["Rio de Janeiro","São Gonçalo","Duque de Caxias","Nova Iguaçu","Niterói","Belford Roxo","São João de Meriti","Campos dos Goytacazes","Petrópolis","Volta Redonda","Magé","Itaboraí","Nova Friburgo","Barra Mansa","Angra dos Reis","Cabo Frio","Resende","Macaé","Nilópolis","Queimados","Araruama","Nova Iguaçu","Mesquita"],"RN":["Natal","Mossoró","Parnamirim","São Gonçalo do Amarante","Macaíba","Ceará-Mirim","Caicó","Açu","Currais Novos","São José de Mipibu","Canguaretama","Acari","São Tomé","Vera Cruz","Alexandria"],"RO":["Porto Velho","Ji-Paraná","Ariquemes","Vilhena","Cacoal","Jaru","Guajará-Mirim","Ouro Preto do Oeste","Pimenta Bueno","Cerejeiras","Alvorada do Oeste","Candeias do Jamari","São Francisco do Guaporé","Presidente Médici","Chupinguaia"],"RR":["Boa Vista","Rorainópolis","Caracaraí","Pacaraima","Alto Alegre","Cantá","Bonfim","Mucajaí","Normandia","Uiramutã"],"RS":["Porto Alegre","Caxias do Sul","Pelotas","Canoas","Santa Maria","Gravataí","Viamão","Novo Hamburgo","São Leopoldo","Rio Grande","Alvorada","Passo Fundo","Sapucaia do Sul","Cachoeirinha","Santa Cruz do Sul","Ijuí","Uruguaiana","Bagé","Bento Gonçalves","Erechim","Carazinho","Lajeado","Trairi","Gramado","Canela","Búzios"],"SC":["Florianópolis","Joinville","Blumenau","São José","Chapecó","Criciúma","Itajaí","Jaraguá do Sul","Lages","Palhoça","Balneário Camboriú","Brusque","Tubarão","Sorocaba","Navegantes","Itapema","Penha","Balneário Piçarras","Porto Belo","Campo Bom","Novo Hamburgo","São Bento do Sul","Gaspar","Guabiruba","Indaial","Pomerode"],"SE":["Aracaju","Nossa Senhora do Socorro","Lagarto","Itabaiana","São Cristóvão","Estância","Tobias Barreto","Simão Dias","Propriá","Capela","Umbaúba","Boquim","Barra dos Coqueiros"],"SP":["São Paulo","Guarulhos","Campinas","São Bernardo do Campo","Santo André","São José dos Campos","Osasco","Ribeirão Preto","Sorocaba","Santos","Mauá","São José do Rio Preto","Mogi das Cruzes","Diadema","Jundiaí","Piracicaba","Carapicuíba","Bauru","Itaquaquecetuba","São Vicente","Porto Feliz","São José do Rio Preto","Franca","Marília","Presidente Prudente","Araraquara","São Carlos","Ribeirão Preto","Presidente Epitácio","Araçatuba","Matão","Botucatu","Jaú","Limeira","Atibaia","Itatiba","Bragança Paulista","Votuporanga","Assis","Ourinhos","Tupã","Avaré","Itapeva","Registro","Iguape","Cajuru","Cruzeiro","Pindamonhangaba","Taubaté","Guaratinguetá","Aparecida","Cachoeira Paulista","Lorena","Pindamonhangaba","Taquaritinga","Catanduva","Bebedouro","Colina","Barretos","Jaboticabal","Gavião Peixoto","Ribeirão Preto","Passos","Poços de Caldas","Varginha","Alfenas","Passos","São Sebastião do Paraíso","Ituiutaba","Uberlândia","Uberaba","Araguari","Itumbiara","Rio Verde","Jataí"],"TO":["Palmas","Araguaína","Gurupi","Porto Nacional","Paraíso do Tocantins","Colinas do Tocantins","Guaraí","Tocantinópolis","Dianópolis","Miracema do Tocantins","Nova Rosalândia","Alvorada","São Félix do Tocantins","Lagoa da Confusão","Araguatins"]};
@@ -2083,17 +1739,13 @@ export async function vercelHandler(event) {
       const allowed = {
         contracts: ['arquivo_contrato'],
         payments: ['comprovante'],
-        certidoes: ['arquivo_dados'],
-        licitacoes: ['arquivos']
+        additives: ['arquivo_contrato']
       }
       if (!allowed[table] || !allowed[table].includes(field)) {
         return json({ ok: false, erro: 'Tabela/campo nao permitido' }, 400)
       }
       const upd = { updated_at: new Date().toISOString() }
       upd[field] = data
-      if (field === 'arquivo_dados') {
-        upd.arquivo_nome = body.filename || ''
-      }
       const { error } = await getSupabase().from(table).update(upd).eq('id', id)
       if (error) return json({ ok: false, erro: error.message }, 500)
       await audit(user.id, 'UPLOAD_FILE', table, id, `${field} atualizado`)
